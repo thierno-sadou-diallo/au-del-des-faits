@@ -11,6 +11,9 @@
             </h1>
             <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
                 <a href="{{ route('blog.index') }}" class="btn btn-light btn-lg">Lire les articles</a>
+                <a href="#newsletter-home" class="btn btn-subscribe btn-lg">
+                    <i class="fas fa-envelope-open-text me-2"></i>Abonner
+                </a>
                 <a href="https://youtube.com/@audeladesfaits-s5z?si=9UwlMfEIMBwJHVX_" class="btn btn-youtube btn-lg" target="_blank" rel="noopener">
                     <i class="fab fa-youtube me-2"></i> YouTube
                 </a>
@@ -21,6 +24,24 @@
                 <source srcset="{{ asset('images/ADF_me.webp') }}" type="image/webp">
                 <img src="{{ asset('images/ADF_me.jpg') }}" alt="Halimatou Keita, fondatrice du blog Au-delà des faits" width="720" height="720" fetchpriority="high" decoding="async">
             </picture>
+        </div>
+    </div>
+</section>
+
+<section class="home-section subscribe-panel" id="newsletter-home">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-6">
+            <span class="section-kicker text-sky">Abonnement</span>
+            <h2>Recevoir les nouvelles publications</h2>
+            <p>Inscrivez-vous pour etre informe lorsqu'une nouvelle analyse ou publication de blog est disponible.</p>
+        </div>
+        <div class="col-lg-6">
+            <form method="POST" action="{{ route('newsletter.subscribe') }}" class="subscribe-form">
+                @csrf
+                <input type="text" name="name" class="form-control" placeholder="Votre nom">
+                <input type="email" name="email" class="form-control" placeholder="Votre email" required>
+                <button class="btn btn-light" type="submit">S'abonner</button>
+            </form>
         </div>
     </div>
 </section>
@@ -319,6 +340,60 @@
         color: #fff;
     }
 
+    .btn-subscribe {
+        background: #f59e0b;
+        border-color: #f59e0b;
+        color: #020617;
+        font-weight: 900;
+    }
+
+    .btn-subscribe:hover {
+        background: #fbbf24;
+        border-color: #fbbf24;
+        color: #020617;
+    }
+
+    .subscribe-panel {
+        background:
+            linear-gradient(135deg, #020617, #1e293b 58%, #0f766e),
+            radial-gradient(circle at 12% 18%, rgba(245, 158, 11, .25), transparent 16rem);
+        border-radius: 22px;
+        color: #fff;
+        padding: clamp(1.5rem, 4vw, 2.5rem);
+    }
+
+    .subscribe-panel h2 {
+        color: #fff;
+        font-size: clamp(1.9rem, 4vw, 3rem);
+        margin: .6rem 0 1rem;
+    }
+
+    .subscribe-panel p {
+        color: rgba(241, 245, 249, .86) !important;
+        margin-bottom: 0;
+    }
+
+    .subscribe-form {
+        display: grid;
+        gap: .75rem;
+        grid-template-columns: 1fr 1.1fr auto;
+    }
+
+    .subscribe-form .form-control {
+        border: 1px solid rgba(255, 255, 255, .28);
+        border-radius: 999px;
+        min-height: 52px;
+        padding-inline: 1rem;
+    }
+
+    .subscribe-form .btn {
+        border-radius: 999px;
+        font-weight: 900;
+        min-height: 52px;
+        padding-inline: 1.25rem;
+        white-space: nowrap;
+    }
+
     .hero-portrait {
         aspect-ratio: 1 / 1;
         border: 1px solid rgba(255, 255, 255, .22);
@@ -480,6 +555,10 @@
 
         .stats-strip {
             grid-template-columns: repeat(2, 1fr);
+        }
+
+        .subscribe-form {
+            grid-template-columns: 1fr;
         }
     }
 

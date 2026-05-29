@@ -27,10 +27,10 @@
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <form method="GET" class="row g-3 align-items-center">
-                    <div class="col-auto">
+                    <div class="col-12 col-sm-auto">
                         <label class="form-label mb-0" for="category">Catégorie</label>
                     </div>
-                    <div class="col">
+                    <div class="col-12 col-sm">
                         <select id="category" name="category" onchange="this.form.submit()" class="form-select">
                             <option value="">Toutes les catégories</option>
                             @foreach($categories as $category)
@@ -38,7 +38,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-auto">
+                    <div class="col-12 col-sm-auto">
                         <button type="submit" class="btn btn-primary">Filtrer</button>
                     </div>
                 </form>
@@ -50,7 +50,11 @@
                 <div class="col">
                     <article class="card h-100 shadow-sm border-0">
                         @if(!empty($item->images[0]))
-                            <img src="{{ asset('storage/'.$item->images[0]) }}" class="card-img-top" alt="{{ $item->title }}" loading="lazy" decoding="async">
+                            <img src="{{ asset('storage/'.$item->images[0]) }}" class="card-img-top publication-thumb" alt="{{ $item->title }}" loading="lazy" decoding="async">
+                        @else
+                            <div class="publication-thumb publication-thumb-empty">
+                                <i class="fas fa-photo-film"></i>
+                            </div>
                         @endif
                         <div class="card-body d-flex flex-column">
                             <div class="mb-2">
@@ -122,6 +126,25 @@
         color: #fff;
         font-weight: 900;
         padding: .75rem 1rem;
+    }
+    .publication-thumb {
+        aspect-ratio: 16 / 9;
+        height: auto;
+        object-fit: cover;
+        width: 100%;
+    }
+    .publication-thumb-empty {
+        align-items: center;
+        background: linear-gradient(135deg, #eff6ff, #fff7ed);
+        color: #2563eb;
+        display: flex;
+        font-size: 2rem;
+        justify-content: center;
+    }
+    @media (max-width: 767.98px) {
+        .media-page-hero .display-4 {
+            font-size: clamp(2rem, 11vw, 3rem);
+        }
     }
 </style>
 @endpush

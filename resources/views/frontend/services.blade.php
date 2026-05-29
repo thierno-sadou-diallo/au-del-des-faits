@@ -156,6 +156,135 @@
     </div>
 </section>
 
+<section class="service-reviews page-hero p-4 p-lg-5 mb-6 mt-6" id="avis-services">
+    <div class="row g-4 align-items-start">
+        <div class="col-lg-5">
+            <span class="badge mb-3">Avis clients</span>
+            <h2 class="display-5 fw-bold">Un espace d'echange autour des services.</h2>
+            <p class="lead">Partagez votre experience, une appreciation ou une suggestion. Les retours aident a ameliorer les accompagnements et a garder une relation directe avec les clients.</p>
+
+            <form method="POST" action="{{ route('services.reviews.store') }}" class="review-form mt-4">
+                @csrf
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="review_name" class="form-label fw-bold">Nom *</label>
+                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="review_name" name="name" value="{{ old('name') }}" required>
+                        @error('name')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="col-md-6">
+                        <label for="review_email" class="form-label fw-bold">Email *</label>
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="review_email" name="email" value="{{ old('email') }}" required>
+                        @error('email')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="col-md-7">
+                        <label for="review_organization" class="form-label fw-bold">Organisation</label>
+                        <input type="text" class="form-control @error('organization') is-invalid @enderror" id="review_organization" name="organization" value="{{ old('organization') }}">
+                        @error('organization')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="col-md-5">
+                        <label for="review_rating" class="form-label fw-bold">Note *</label>
+                        <select class="form-select @error('rating') is-invalid @enderror" id="review_rating" name="rating" required>
+                            @for($rating = 5; $rating >= 1; $rating--)
+                                <option value="{{ $rating }}" @selected((int) old('rating', 5) === $rating)>{{ $rating }}/5</option>
+                            @endfor
+                        </select>
+                        @error('rating')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="col-12">
+                        <label for="review_message" class="form-label fw-bold">Votre avis *</label>
+                        <textarea class="form-control @error('message') is-invalid @enderror" id="review_message" name="message" rows="5" required>{{ old('message') }}</textarea>
+                        @error('message')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-light btn-lg w-100" type="submit">
+                            <i class="fas fa-comment-dots me-2"></i>Publier mon avis
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="review-summary">
+                <div>
+                    <strong>{{ $reviewStats['count'] }}</strong>
+                    <span>avis publiés</span>
+                </div>
+                <div>
+                    <strong>{{ $reviewStats['average'] ?: '0' }}/5</strong>
+                    <span>note moyenne</span>
+                </div>
+                <div>
+                    <strong>{{ $reviewStats['answered'] }}</strong>
+                    <span>réponses admin</span>
+                </div>
+            </div>
+
+            <div class="reviews-list">
+                @forelse($reviews as $review)
+                    <article class="review-card">
+                        <div class="review-head">
+                            <div>
+                                <strong>{{ $review->name }}</strong>
+                                @if($review->organization)
+                                    <span>{{ $review->organization }}</span>
+                                @endif
+                            </div>
+                            <div class="review-stars" aria-label="Note {{ $review->rating }} sur 5">
+                                @for($star = 1; $star <= 5; $star++)
+                                    <i class="{{ $star <= $review->rating ? 'fas' : 'far' }} fa-star"></i>
+                                @endfor
+                            </div>
+                        </div>
+                        <p>{{ $review->message }}</p>
+                        <small>{{ $review->created_at->format('d/m/Y') }}</small>
+
+                        @if($review->admin_reply)
+                            <div class="review-admin-reply">
+                                <div class="reply-avatar">ADF</div>
+                                <div class="reply-bubble">
+                                    <div class="reply-head">
+                                        <strong>{{ $review->admin_reply_author ?: 'Au-delà des faits' }}</strong>
+                                        <span>Réponse admin</span>
+                                    </div>
+                                    <p>{!! nl2br(e($review->admin_reply)) !!}</p>
+                                    @if($review->replied_at)
+                                        <small>{{ $review->replied_at->format('d/m/Y') }}</small>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </article>
+                @empty
+                    <div class="review-empty">
+                        <i class="fas fa-comments"></i>
+                        <h3 class="h4 fw-bold">Aucun avis pour le moment</h3>
+                        <p class="mb-0">Soyez la premiere personne a laisser un retour sur les services.</p>
+                    </div>
+                @endforelse
+            </div>
+
+            @if($reviews->hasPages())
+                <nav class="review-pagination" aria-label="Pagination des avis">
+                    @if($reviews->onFirstPage())
+                        <span class="review-page-link is-disabled">Précédent</span>
+                    @else
+                        <a class="review-page-link" href="{{ $reviews->previousPageUrl() }}">Précédent</a>
+                    @endif
+
+                    <span class="review-page-status">Page {{ $reviews->currentPage() }} sur {{ $reviews->lastPage() }}</span>
+
+                    @if($reviews->hasMorePages())
+                        <a class="review-page-link" href="{{ $reviews->nextPageUrl() }}">Suivant</a>
+                    @else
+                        <span class="review-page-link is-disabled">Suivant</span>
+                    @endif
+                </nav>
+            @endif
+        </div>
+    </div>
+</section>
+
 <section class="text-center page-hero p-4 p-lg-5 mb-6 mt-6">
     <span class="badge mb-3">Projet</span>
     <h2 class="display-5 fw-bold">Discutons de votre besoin.</h2>
@@ -399,6 +528,196 @@
     }
     .sector-card h3 {
         font-size: 1.25rem;
+    }
+    .service-reviews {
+        color: #fff;
+    }
+    .service-reviews h2 {
+        color: #fff;
+    }
+    .service-reviews .lead {
+        color: rgba(241, 245, 249, .88) !important;
+    }
+    .review-form {
+        background: rgba(255, 255, 255, .1);
+        border: 1px solid rgba(255, 255, 255, .18);
+        border-radius: 22px;
+        padding: 1.25rem;
+    }
+    .review-form label {
+        color: #fff;
+    }
+    .review-form .form-control,
+    .review-form .form-select {
+        border: 1px solid rgba(255, 255, 255, .26);
+        border-radius: 14px;
+        min-height: 50px;
+    }
+    .reviews-list {
+        display: grid;
+        gap: 1rem;
+    }
+    .review-summary {
+        display: grid;
+        gap: .85rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-bottom: 1rem;
+    }
+    .review-summary > div {
+        background: rgba(255, 255, 255, .92);
+        border: 1px solid rgba(255, 255, 255, .24);
+        border-radius: 18px;
+        box-shadow: 0 16px 42px rgba(2, 6, 23, .12);
+        padding: 1rem;
+    }
+    .review-summary strong,
+    .review-summary span {
+        display: block;
+    }
+    .review-summary strong {
+        color: #0f172a;
+        font-size: 1.5rem;
+        font-weight: 900;
+        line-height: 1;
+    }
+    .review-summary span {
+        color: #64748b;
+        font-size: .78rem;
+        font-weight: 900;
+        margin-top: .35rem;
+        text-transform: uppercase;
+    }
+    .review-card,
+    .review-empty {
+        background: rgba(255, 255, 255, .94);
+        border: 1px solid rgba(255, 255, 255, .22);
+        border-radius: 20px;
+        box-shadow: 0 22px 56px rgba(2, 6, 23, .14);
+        color: #0f172a;
+        padding: 1.25rem;
+    }
+    .review-head {
+        align-items: flex-start;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-bottom: .85rem;
+    }
+    .review-head strong,
+    .review-head span {
+        display: block;
+    }
+    .review-head span {
+        color: #64748b;
+        font-size: .88rem;
+        font-weight: 800;
+        margin-top: .2rem;
+    }
+    .review-stars {
+        color: #f59e0b;
+        white-space: nowrap;
+    }
+    .review-card p {
+        color: #475569 !important;
+        margin-bottom: .75rem;
+    }
+    .review-card small {
+        color: #64748b;
+        font-weight: 800;
+    }
+    .review-admin-reply {
+        align-items: flex-start;
+        border-top: 1px solid rgba(148, 163, 184, .18);
+        display: flex;
+        gap: .75rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+    }
+    .reply-avatar {
+        align-items: center;
+        background: linear-gradient(135deg, #020617, #2563eb);
+        border-radius: 999px;
+        color: #fff;
+        display: inline-flex;
+        flex: 0 0 auto;
+        font-size: .72rem;
+        font-weight: 900;
+        height: 38px;
+        justify-content: center;
+        width: 38px;
+    }
+    .reply-bubble {
+        background: #eff6ff;
+        border: 1px solid rgba(37, 99, 235, .12);
+        border-radius: 18px;
+        padding: .9rem 1rem;
+        width: 100%;
+    }
+    .reply-head {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+        margin-bottom: .35rem;
+    }
+    .reply-head strong {
+        color: #0f172a;
+    }
+    .reply-head span {
+        background: #2563eb;
+        border-radius: 999px;
+        color: #fff;
+        font-size: .68rem;
+        font-weight: 900;
+        padding: .2rem .55rem;
+        text-transform: uppercase;
+    }
+    .reply-bubble p {
+        margin-bottom: .45rem;
+    }
+    .review-empty {
+        text-align: center;
+    }
+    .review-empty i {
+        color: #2563eb;
+        font-size: 2rem;
+        margin-bottom: .75rem;
+    }
+    .review-pagination {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem;
+        justify-content: center;
+        margin-top: 1.25rem;
+    }
+    .review-page-link,
+    .review-page-status {
+        border-radius: 999px;
+        font-size: .88rem;
+        font-weight: 900;
+        padding: .7rem 1rem;
+        text-decoration: none;
+    }
+    .review-page-link {
+        background: #fff;
+        color: #0f172a;
+    }
+    .review-page-link:hover {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+    .review-page-link.is-disabled {
+        opacity: .48;
+    }
+    .review-page-status {
+        background: rgba(15, 23, 42, .72);
+        color: #fff;
+    }
+    @media (max-width: 575.98px) {
+        .review-summary {
+            grid-template-columns: 1fr;
+        }
     }
     @keyframes rotate-orbit {
         to { transform: rotate(360deg); }

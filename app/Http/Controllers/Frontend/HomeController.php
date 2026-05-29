@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\NewsletterSubscriber;
 use App\Models\Portfolio;
 use App\Models\Post;
+use App\Models\ServiceReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -105,7 +106,7 @@ class HomeController extends Controller
             ->whereHas('category', fn ($q) => $q->where('type', 'media'))
             ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
             ->latest()
-            ->paginate(9)
+            ->paginate(6)
             ->withQueryString();
 
         $categories = Cache::remember('media_categories', 600, function () {
@@ -122,7 +123,19 @@ class HomeController extends Controller
 
     public function services()
     {
+        $approvedReviews = ServiceReview::query()->where('is_approved', true);
+
         return view('frontend.services', [
+            'reviews' => (clone $approvedReviews)
+                ->latest()
+                ->paginate(6)
+                ->withQueryString()
+                ->fragment('avis-services'),
+            'reviewStats' => [
+                'count' => (clone $approvedReviews)->count(),
+                'average' => round((float) (clone $approvedReviews)->avg('rating'), 1),
+                'answered' => (clone $approvedReviews)->whereNotNull('admin_reply')->count(),
+            ],
             'seoTitle' => 'Services - Au-delà des faits',
             'seoDescription' => 'Découvrez les services de conseil, communication et accompagnement sociologique.',
         ]);
@@ -131,8 +144,8 @@ class HomeController extends Controller
     public function contact()
     {
         return view('frontend.contact', [
-            'seoTitle' => 'Contact - Au-delà des faits',
-            'seoDescription' => 'Contactez Halimatou Keita pour vos projets sociologiques.',
+            'seoTitle' => 'Contact - Au-dela des faits',
+            'seoDescription' => 'Contactez Halimatou Keita pour une demande media, une collaboration, une conference ou un accompagnement.',
         ]);
     }
 

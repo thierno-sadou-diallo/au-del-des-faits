@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'halimatouk484@gmail.com'],
             [
                 'name' => 'Halimatou Keita',
-                'password' => 'admin123@',
+                'password' => 'admin@123',
                 'is_admin' => true,
                 'email_verified_at' => now(),
             ]

@@ -3,7 +3,7 @@
 @section('content')
 <div class="row gy-4 mb-5">
     <div class="col-12">
-        <div class="portfolio-hero rounded-4 bg-white shadow-sm p-5">
+        <div class="portfolio-hero rounded-4 bg-white shadow-sm p-4 p-lg-5">
             <div class="row g-4 align-items-center">
                 <div class="col-lg-8">
                     <span class="badge bg-primary mb-3">Portfolio</span>
@@ -26,10 +26,10 @@
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <form method="GET" class="row g-3 align-items-center">
-                    <div class="col-auto">
+                    <div class="col-12 col-sm-auto">
                         <label class="form-label mb-0" for="category">Catégorie</label>
                     </div>
-                    <div class="col">
+                    <div class="col-12 col-sm">
                         <select id="category" name="category" onchange="this.form.submit()" class="form-select">
                             <option value="">Toutes les catégories</option>
                             @foreach($categories as $category)
@@ -37,7 +37,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-auto">
+                    <div class="col-12 col-sm-auto">
                         <button type="submit" class="btn btn-primary">Filtrer</button>
                     </div>
                 </form>
@@ -49,7 +49,11 @@
                 <div class="col">
                     <div class="card h-100 shadow-sm border-0">
                         @if(!empty($project->images[0]))
-                            <img src="{{ asset('storage/'.$project->images[0]) }}" class="card-img-top" alt="{{ $project->title }}">
+                            <img src="{{ asset('storage/'.$project->images[0]) }}" class="card-img-top publication-thumb" alt="{{ $project->title }}" loading="lazy" decoding="async">
+                        @else
+                            <div class="publication-thumb publication-thumb-empty">
+                                <i class="fas fa-camera-retro"></i>
+                            </div>
                         @endif
                         <div class="card-body d-flex flex-column">
                             <div class="mb-2">
@@ -123,6 +127,25 @@
     }
     @keyframes lens-spin {
         to { transform: rotate(360deg); }
+    }
+    .publication-thumb {
+        aspect-ratio: 16 / 9;
+        height: auto;
+        object-fit: cover;
+        width: 100%;
+    }
+    .publication-thumb-empty {
+        align-items: center;
+        background: linear-gradient(135deg, #eff6ff, #fff7ed);
+        color: #2563eb;
+        display: flex;
+        font-size: 2rem;
+        justify-content: center;
+    }
+    @media (max-width: 767.98px) {
+        .portfolio-hero .display-5 {
+            font-size: clamp(2rem, 11vw, 3rem);
+        }
     }
 </style>
 @endpush

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
         $siteName = 'Au-delà des faits';
         $defaultDescription = 'Blog sociologique de Halimatou Keita consacré à la justice sociale, aux droits humains, au Sénégal, à l’Afrique et aux médias.';
@@ -30,25 +31,26 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <script type="application/ld+json">
-        {!! \Illuminate\Support\Js::from([
-            '@context' => 'https://schema.org',
-            '@type' => 'Blog',
-            'name' => $siteName,
-            'url' => url('/'),
-            'description' => $seoDescription ?? $defaultDescription,
-            'inLanguage' => 'fr',
-            'author' => [
-                '@type' => 'Person',
-                'name' => 'Halimatou Keita',
-            ],
-            'sameAs' => [
-                'https://www.facebook.com/share/r/18SYrbWQMw/',
-                'https://www.instagram.com/au_dela_desfaits?igsh=MXB4YmZyYmFndmplMw==',
-                'https://www.linkedin.com/company/au-del%C3%A0-des-faits/',
-                $youtubeUrl,
-            ],
-        ]) !!}
+    {!! json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'Blog',
+        'name' => $siteName,
+        'url' => url('/'),
+        'description' => $seoDescription ?? $defaultDescription,
+        'inLanguage' => 'fr',
+        'author' => [
+            '@type' => 'Person',
+            'name' => 'Halimatou Keita',
+        ],
+        'sameAs' => [
+            'https://www.facebook.com/share/r/18SYrbWQMw/',
+            'https://www.instagram.com/au_dela_desfaits?igsh=MXB4YmZyYmFndmplMw==',
+            'https://www.linkedin.com/company/au-del%C3%A0-des-faits/',
+            $youtubeUrl,
+        ],
+    ]) !!}
     </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
@@ -480,10 +482,32 @@
             gap: .75rem;
             margin-top: 2rem;
         }
-        .site-pagination .page-link {
+        .pagination-shell {
             align-items: center;
-            background: rgba(255, 255, 255, .92);
-            border: 1px solid rgba(148, 163, 184, .32);
+            background: rgba(255, 255, 255, .84);
+            border: 1px solid rgba(148, 163, 184, .24);
+            border-radius: 999px;
+            box-shadow: 0 18px 48px rgba(15, 23, 42, .08);
+            display: flex;
+            flex-wrap: wrap;
+            gap: .45rem;
+            justify-content: center;
+            padding: .45rem;
+        }
+        .pagination-pages {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .35rem;
+            justify-content: center;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .page-number,
+        .page-step,
+        .page-dot {
+            align-items: center;
             border-radius: 999px !important;
             color: var(--ink);
             display: inline-flex;
@@ -492,23 +516,36 @@
             justify-content: center;
             min-width: 42px;
             padding: .45rem .85rem;
+            text-decoration: none;
             transition: transform .18s ease, background .18s ease, border-color .18s ease;
         }
-        .site-pagination .page-link:hover {
+        .page-number {
+            background: rgba(248, 250, 252, .94);
+            border: 1px solid rgba(148, 163, 184, .22);
+        }
+        .page-step {
+            background: #0f172a;
+            color: #fff;
+            min-width: 104px;
+        }
+        .page-number:hover,
+        .page-step:hover {
             background: #eff6ff;
             border-color: rgba(37, 99, 235, .42);
             color: var(--blue);
             transform: translateY(-2px);
         }
-        .site-pagination .page-item.active .page-link {
+        .page-number.is-active {
             background: linear-gradient(135deg, var(--ink), var(--blue));
             border-color: transparent;
             color: #fff;
         }
-        .site-pagination .page-item.disabled .page-link {
+        .page-step.is-disabled,
+        .page-dot {
             background: rgba(226, 232, 240, .72);
             color: #94a3b8;
             transform: none;
+            pointer-events: none;
         }
         .pagination-summary {
             color: #64748b !important;
@@ -893,6 +930,13 @@
             .site-footer {
                 padding-bottom: 6rem !important;
             }
+            .pagination-shell {
+                border-radius: 24px;
+                width: 100%;
+            }
+            .page-step {
+                flex: 1 1 120px;
+            }
         }
         .mb-6 { margin-bottom: 5rem !important; }
         .mt-6 { margin-top: 5rem !important; }
@@ -1021,6 +1065,7 @@
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('thematiques') ? 'active' : '' }}" href="{{ route('thematiques') }}">Thématiques</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('medias') ? 'active' : '' }}" href="{{ route('medias') }}">Médias</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('services') ? 'active' : '' }}" href="{{ route('services') }}">Services</a></li>
+                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('appointment*') ? 'active' : '' }}" href="{{ route('appointment.fr') }}">Rendez-vous</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('contact') ? 'active' : '' }}" href="{{ route('contact') }}">Contact</a></li>
                     @guest
                         <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Connexion</a></li>
@@ -1130,6 +1175,10 @@
                     <i class="fas fa-paper-plane"></i>
                     <span><strong>Contact</strong><small>Envoyer une demande</small></span>
                 </a>
+                <a class="spotlight-item" href="{{ route('appointment.fr') }}" data-search="rendez-vous creneau disponibilite reservation demande suivi">
+                    <i class="fas fa-calendar-check"></i>
+                    <span><strong>Rendez-vous</strong><small>Demander ou suivre un rendez-vous</small></span>
+                </a>
             </div>
             <div class="spotlight-empty" id="spotlight-empty">Aucun résultat. Essayez "articles", "médias", "contact" ou "justice".</div>
         </div>
@@ -1142,7 +1191,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         @endif
-        {{ $slot ?? '' }}
         @yield('content')
     </main>
 

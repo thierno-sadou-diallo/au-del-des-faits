@@ -61,7 +61,7 @@
                             </a>
                         </div>
                         <div class="rounded-[2rem] border border-amber-200/40 bg-white/95 p-7 shadow-2xl shadow-slate-950/40 backdrop-blur sm:p-8">
-                            {{ $slot }}
+                            @yield('content')
                         </div>
                     </div>
                 </main>

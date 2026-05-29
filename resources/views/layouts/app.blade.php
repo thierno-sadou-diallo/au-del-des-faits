@@ -19,6 +19,9 @@
                 --admin-earth: #7c2d12;
                 --admin-leaf: #15803d;
             }
+            [x-cloak] {
+                display: none !important;
+            }
             body {
                 background:
                     linear-gradient(115deg, rgba(180,83,9,.08), transparent 22rem),
@@ -128,7 +131,11 @@
             @endisset
 
             <main>
-                {{ $slot }}
+                @isset($slot)
+                    {{ $slot }}
+                @else
+                    @yield('content')
+                @endisset
             </main>
         </div>
     </body>

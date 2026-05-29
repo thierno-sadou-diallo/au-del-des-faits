@@ -1,8 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
-        <div>
-            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-teal-600">Media</p>
-            <h1 class="text-2xl font-semibold text-slate-950">Publier un media ou projet</h1>
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <p class="admin-kicker">Médias</p>
+                <h1 class="mt-1 text-3xl font-semibold text-white">Publier un média</h1>
+                <p class="mt-2 max-w-2xl text-sm text-slate-200">Ajoutez des images accompagnées d’un texte, d’une catégorie et, si besoin, d’un lien vidéo ou externe.</p>
+            </div>
+            <a href="{{ route('admin.portfolios.index') }}" class="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-black text-white transition hover:bg-white/15">Retour aux médias</a>
         </div>
     </x-slot>
 

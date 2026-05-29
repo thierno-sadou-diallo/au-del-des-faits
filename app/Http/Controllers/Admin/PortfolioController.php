@@ -14,15 +14,25 @@ class PortfolioController extends Controller
 {
     public function index()
     {
+        $query = Portfolio::query();
+
         return view('admin.portfolio.index', [
-            'projects' => Portfolio::with('category')->latest()->paginate(20),
+            'projects' => (clone $query)->with('category')->latest()->paginate(20),
+            'mediaTotal' => (clone $query)->count(),
+            'mediaViews' => (clone $query)->sum('views'),
+            'mediaLikes' => (clone $query)->sum('likes'),
+            'mediaWithVideo' => (clone $query)->whereNotNull('video_url')->where('video_url', '!=', '')->count(),
         ]);
     }
 
     public function create()
     {
         return view('admin.portfolio.create', [
-            'categories' => Category::query()->orderBy('type')->orderBy('name')->get(),
+            'categories' => Category::query()
+                ->whereIn('type', ['media', 'portfolio'])
+                ->orderBy('type')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
@@ -33,14 +43,18 @@ class PortfolioController extends Controller
         Portfolio::create($data);
         $this->clearPublicCaches();
 
-        return redirect()->route('admin.portfolios.index')->with('status', 'Projet cree.');
+        return redirect()->route('admin.portfolios.index')->with('status', 'Média publié avec succès.');
     }
 
     public function edit(Portfolio $portfolio)
     {
         return view('admin.portfolio.edit', [
             'project' => $portfolio,
-            'categories' => Category::query()->orderBy('type')->orderBy('name')->get(),
+            'categories' => Category::query()
+                ->whereIn('type', ['media', 'portfolio'])
+                ->orderBy('type')
+                ->orderBy('name')
+                ->get(),
         ]);
     }
 
@@ -58,7 +72,7 @@ class PortfolioController extends Controller
         $portfolio->update($data);
         $this->clearPublicCaches($portfolio);
 
-        return redirect()->route('admin.portfolios.index')->with('status', 'Projet mis a jour.');
+        return redirect()->route('admin.portfolios.index')->with('status', 'Média mis à jour avec succès.');
     }
 
     public function destroy(Portfolio $portfolio)
@@ -69,11 +83,15 @@ class PortfolioController extends Controller
         $portfolio->delete();
         $this->clearPublicCaches($portfolio);
 
-        return back()->with('status', 'Projet supprime.');
+        return back()->with('status', 'Média supprimé avec succès.');
     }
 
     protected function validateData(Request $request): array
     {
+        $imageRules = $request->isMethod('post')
+            ? ['required', 'array', 'min:1']
+            : ['nullable', 'array'];
+
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
@@ -81,6 +99,7 @@ class PortfolioController extends Controller
             'video_url' => ['nullable', 'url'],
             'category_id' => ['nullable', 'exists:categories,id'],
             'technologies' => ['nullable', 'string'],
+            'images' => $imageRules,
             'images.*' => ['nullable', 'image', 'max:2048'],
         ]);
         $data['technologies'] = ! empty($data['technologies'])

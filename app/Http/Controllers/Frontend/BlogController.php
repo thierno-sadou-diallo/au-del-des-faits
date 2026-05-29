@@ -15,10 +15,10 @@ class BlogController extends Controller
             ->with('category')
             ->where('status', 'published')
             ->latest()
-            ->paginate(9)
+            ->paginate(6)
             ->withQueryString();
         $recentPosts = Cache::remember('blog_recent_posts', 300, function () {
-            return Post::query()->where('status', 'published')->latest()->take(5)->get();
+            return Post::query()->where('status', 'published')->latest()->take(4)->get();
         });
 
         return view('blog.index', [
@@ -57,7 +57,7 @@ class BlogController extends Controller
             'post' => $post,
             'similarPosts' => $similarPosts,
             'recentPosts' => Cache::remember('blog_recent_posts', 300, function () {
-                return Post::query()->where('status', 'published')->latest()->take(5)->get();
+                return Post::query()->where('status', 'published')->latest()->take(4)->get();
             }),
             'seoTitle' => $post->title.' - Au-delà des faits',
             'seoDescription' => str($post->content)->stripTags()->limit(160)->toString(),

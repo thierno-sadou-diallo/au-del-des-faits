@@ -3,7 +3,7 @@
 @section('content')
 <div class="row gy-4 mb-5">
     <div class="col-12">
-        <div class="blog-hero rounded-4 bg-white shadow-sm p-5">
+        <div class="blog-hero rounded-4 bg-white shadow-sm p-4 p-lg-5">
             <div class="row g-4 align-items-end">
                 <div class="col-lg-8">
                     <span class="badge bg-primary mb-3">Blog professionnel</span>
@@ -28,7 +28,11 @@
                 <div class="col">
                     <div class="card h-100 shadow-sm border-0">
                         @if($post->image)
-                            <img src="{{ asset('storage/'.$post->image) }}" class="card-img-top" alt="{{ $post->title }}">
+                            <img src="{{ asset('storage/'.$post->image) }}" class="card-img-top publication-thumb" alt="{{ $post->title }}" loading="lazy" decoding="async">
+                        @else
+                            <div class="publication-thumb publication-thumb-empty">
+                                <i class="fas fa-newspaper"></i>
+                            </div>
                         @endif
                         <div class="card-body d-flex flex-column">
                             <div class="mb-2">
@@ -38,7 +42,7 @@
                                 <small class="text-muted ms-2">{{ $post->created_at->format('d/m/Y') }}</small>
                             </div>
                             <h2 class="h5 fw-bold"><a href="{{ route('blog.show', $post->slug) }}" class="text-dark text-decoration-none">{{ $post->title }}</a></h2>
-                            <p class="text-muted mb-4">{{ \Illuminate\Support\Str::limit(strip_tags($post->content), 120) }}</p>
+                            <p class="text-muted mb-4">{{ \Illuminate\Support\Str::limit(strip_tags($post->content), 135) }}</p>
                             <div class="mt-auto d-flex justify-content-between align-items-center">
                                 <small class="text-muted">{{ $post->views }} vues</small>
                                 <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-sm btn-primary">Lire</a>
@@ -106,6 +110,25 @@
         font-family: 'Playfair Display', serif;
         font-size: 1.35rem;
         font-weight: 800;
+    }
+    .publication-thumb {
+        aspect-ratio: 16 / 9;
+        height: auto;
+        object-fit: cover;
+        width: 100%;
+    }
+    .publication-thumb-empty {
+        align-items: center;
+        background: linear-gradient(135deg, #eff6ff, #fff7ed);
+        color: #2563eb;
+        display: flex;
+        font-size: 2rem;
+        justify-content: center;
+    }
+    @media (max-width: 767.98px) {
+        .blog-hero .display-5 {
+            font-size: clamp(2rem, 11vw, 3rem);
+        }
     }
 </style>
 @endpush

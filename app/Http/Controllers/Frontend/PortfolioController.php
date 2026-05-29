@@ -16,7 +16,7 @@ class PortfolioController extends Controller
             ->with('category')
             ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
             ->latest()
-            ->paginate(9)
+            ->paginate(6)
             ->withQueryString();
         $categories = Cache::remember('portfolio_categories', 600, function () {
             return Category::query()->where('type', 'portfolio')->orderBy('name')->get();

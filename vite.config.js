@@ -8,4 +8,10 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    build: {
+        minify: 'esbuild',
+        cssMinify: true,
+        chunkSizeWarningLimit: 1000,
+        reportCompressedSize: true,
+    },
 });
