@@ -24,8 +24,9 @@ class OptimizeResponse
         $response->header('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->header('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
-        // Cache headers for static assets
-        if ($request->getPathInfo() === '/') {
+        if (! $request->isMethodCacheable() || $request->user() || $request->is('admin/*', 'login', 'register', 'profile*')) {
+            $response->headers->set('Cache-Control', 'no-store, private');
+        } elseif ($request->getPathInfo() === '/') {
             $response->header('Cache-Control', 'public, max-age=3600, s-maxage=86400');
         } else {
             $response->header('Cache-Control', 'public, max-age=3600');
