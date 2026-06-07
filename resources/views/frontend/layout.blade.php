@@ -49,6 +49,7 @@
             'https://www.instagram.com/au_dela_desfaits?igsh=MXB4YmZyYmFndmplMw==',
             'https://www.linkedin.com/company/au-del%C3%A0-des-faits/',
             $youtubeUrl,
+            $tiktokUrl,
         ],
     ]) !!}
     </script>
@@ -1207,10 +1208,11 @@
                     </div>
                     <p class="text-white-50">Mettre la communication et l'analyse sociologique au service de l'intérêt général.</p>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/share/r/18SYrbWQMw/" class="fab fa-facebook-f" aria-label="Facebook"></a>
-                        <a href="https://www.instagram.com/au_dela_desfaits?igsh=MXB4YmZyYmFndmplMw==" class="fab fa-instagram" aria-label="Instagram"></a>
-                        <a href="https://www.linkedin.com/company/au-del%C3%A0-des-faits/" class="fab fa-linkedin-in" aria-label="LinkedIn"></a>
+                        <a href="https://www.facebook.com/share/r/18SYrbWQMw/" class="fab fa-facebook-f" aria-label="Facebook" target="_blank" rel="noopener"></a>
+                        <a href="https://www.instagram.com/au_dela_desfaits?igsh=MXB4YmZyYmFndmplMw==" class="fab fa-instagram" aria-label="Instagram" target="_blank" rel="noopener"></a>
+                        <a href="https://www.linkedin.com/company/au-del%C3%A0-des-faits/" class="fab fa-linkedin-in" aria-label="LinkedIn" target="_blank" rel="noopener"></a>
                         <a href="{{ $youtubeUrl }}" class="fab fa-youtube" aria-label="YouTube" target="_blank" rel="noopener"></a>
+                        <a href="{{ $tiktokUrl }}" class="fab fa-tiktok" aria-label="TikTok" target="_blank" rel="noopener"></a>
                     </div>
                 </div>
                 <div class="col-md-4">
