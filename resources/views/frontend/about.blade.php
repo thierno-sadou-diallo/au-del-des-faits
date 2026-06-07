@@ -29,10 +29,11 @@
                 <p>Mon parcours, entre le Canada et le Sénégal, m'a permis de développer un regard à la fois critique et nuancé sur les dynamiques sociales, les inégalités et les réalités humaines qui traversent nos sociétés.</p>
                 <p>Mais comprendre ne m'a jamais suffi.</p>
                 <div class="social-links mt-4">
-                    <a href="https://www.facebook.com/share/r/18SYrbWQMw/" class="fab fa-facebook-f" title="Facebook"></a>
-                    <a href="https://www.instagram.com/au_dela_desfaits?igsh=MXB4YmZyYmFndmplMw==" class="fab fa-instagram" title="Instagram"></a>
-                    <a href="https://www.linkedin.com/company/au-del%C3%A0-des-faits/" class="fab fa-linkedin-in" title="LinkedIn"></a>
+                    <a href="https://www.facebook.com/share/r/18SYrbWQMw/" class="fab fa-facebook-f" title="Facebook" target="_blank" rel="noopener"></a>
+                    <a href="https://www.instagram.com/au_dela_desfaits?igsh=MXB4YmZyYmFndmplMw==" class="fab fa-instagram" title="Instagram" target="_blank" rel="noopener"></a>
+                    <a href="https://www.linkedin.com/company/au-del%C3%A0-des-faits/" class="fab fa-linkedin-in" title="LinkedIn" target="_blank" rel="noopener"></a>
                     <a href="https://youtube.com/@audeladesfaits-s5z?si=9UwlMfEIMBwJHVX_" class="fab fa-youtube" title="YouTube" target="_blank" rel="noopener"></a>
+                    <a href="https://www.tiktok.com/@audeladesfaits2024?_r=1&_t=ZS-96M1YTFoZyq" class="fab fa-tiktok" title="TikTok" target="_blank" rel="noopener"></a>
                 </div>
             </div>
         </div>

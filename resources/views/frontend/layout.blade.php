@@ -6,9 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
         $siteName = 'Au-delà des faits';
-        $defaultDescription = 'Blog sociologique de Halimatou Keita consacré à la justice sociale, aux droits humains, au Sénégal, à l’Afrique et aux médias.';
+        $defaultDescription = "Blog sociologique de Halimatou Keita consacré à la justice sociale, aux droits humains, au Sénégal, à l’Afrique et aux médias.";
         $seoImage = $seoImage ?? asset('images/logo.PNG');
         $youtubeUrl = 'https://youtube.com/@audeladesfaits-s5z?si=9UwlMfEIMBwJHVX_';
+        $tiktokUrl = 'https://www.tiktok.com/@audeladesfaits2024?_r=1&_t=ZS-96M1YTFoZyq';
     @endphp
     <title>{{ $seoTitle ?? $siteName.' - Blog sociologique' }}</title>
     <meta name="description" content="{{ $seoDescription ?? $defaultDescription }}">
