@@ -105,26 +105,14 @@
             </article>
         </div>
     </div>
-        <div class="col-12">
-            <article class="card service-detail-card">
-                <div class="card-body">
-                    <h3 class="h4 fw-bold">GESTION DE RÉSEAUX SOCIAUX</h3>
-                    <p>Offrir des services de gestion et d’animation des réseaux sociaux afin d’améliorer votre visibilité en ligne, renforcer votre image de marque et développer une communauté engagée autour de vos activités. Élaborer des stratégies de contenu adaptées à vos objectifs, créer des publications attractives et pertinentes, assurer l’interaction avec votre audience et analyser les performances de vos plateformes numériques afin d’optimiser votre communication digitale.</p>
-                </div>
-            </article>
-        </div>
-        <div class="col-12">
-            <article class="card service-detail-card">
-                <div class="card-body">
-                    <h3 class="h4 fw-bold">COORDINATION D’ÉVÉNEMENTS</h3>
-                    <p>Proposer des services de planification, d’organisation et de coordination d’événements professionnels, éducatifs, sociaux et communautaires. Assurer la gestion logistique, la communication événementielle, la coordination des intervenants et partenaires, ainsi que le suivi des différentes étapes nécessaires à la réussite de vos événements. Veiller à créer des expériences enrichissantes et impactantes adaptées à vos objectifs et à votre public cible.</p>
-                </div>
-            </article>
-        </div>
-        <div class="col-12">
-            <article class="card service-detail-card">
-                <div class="card-body">
-                    <h3 class="h4 fw-bold">GESTION DE LA RELATION PRESSE</h3>
+</section>
+
+<section class="service-reviews page-hero p-4 p-lg-5 mb-6 mt-6" id="avis-services">
+    <div class="row g-4 align-items-start">
+        <div class="col-lg-5">
+            <span class="badge mb-3">Avis clients</span>
+            <h2 class="display-5 fw-bold">Un espace d'echange autour des services.</h2>
+
                     <p>Offrir des services de gestion des relations avec les médias afin d’accroître votre visibilité et valoriser votre image publique. Assurer la rédaction et la diffusion de communiqués de presse, la prise de contact avec les journalistes et organes de presse, l’organisation d’interviews et de conférences de presse, ainsi que le développement de stratégies médiatiques efficaces pour promouvoir vos activités, projets, événements ou prises de position publiques.</p>
                 </div>
             </article>
