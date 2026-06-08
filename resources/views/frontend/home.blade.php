@@ -14,7 +14,7 @@
                 <a href="#newsletter-home" class="btn btn-subscribe btn-lg">
                     <i class="fas fa-envelope-open-text me-2"></i>Abonner
                 </a>
-                <a href="https://youtube.com/@audeladesfaits-s5z?si=9UwlMfEIMBwJHVX_" class="btn btn-youtube btn-lg" target="_blank" rel="noopener">
+                <a href="https://youtube.com/@audeladesfaits24?si=rwrvJvKqaD1H1K9g" class="btn btn-youtube btn-lg" target="_blank" rel="noopener">
                     <i class="fab fa-youtube me-2"></i> YouTube
                 </a>
             </div>
@@ -131,7 +131,7 @@
             </p>
         </div>
         <div class="col-lg-5 text-lg-end">
-            <a href="https://youtube.com/@audeladesfaits-s5z?si=9UwlMfEIMBwJHVX_" class="btn btn-light btn-lg" target="_blank" rel="noopener">
+            <a href="https://youtube.com/@audeladesfaits24?si=rwrvJvKqaD1H1K9g" class="btn btn-light btn-lg" target="_blank" rel="noopener">
                 <i class="fab fa-youtube me-2 text-danger"></i> Ouvrir la chaîne
             </a>
         </div>

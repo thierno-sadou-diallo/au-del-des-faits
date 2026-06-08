@@ -8,7 +8,7 @@
         $siteName = 'Au-delà des faits';
         $defaultDescription = "Blog sociologique de Halimatou Keita consacré à la justice sociale, aux droits humains, au Sénégal, à l’Afrique et aux médias.";
         $seoImage = $seoImage ?? asset('images/logo.PNG');
-        $youtubeUrl = 'https://youtube.com/@audeladesfaits-s5z?si=9UwlMfEIMBwJHVX_';
+        $youtubeUrl = 'https://youtube.com/@audeladesfaits24?si=rwrvJvKqaD1H1K9g';
         $tiktokUrl = 'https://www.tiktok.com/@audeladesfaits2024?_r=1&_t=ZS-96M1YTFoZyq';
     @endphp
     <title>{{ $seoTitle ?? $siteName.' - Blog sociologique' }}</title>
