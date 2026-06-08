@@ -12,7 +12,6 @@ class ServiceReviewController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:120',
-            'email' => 'required|email|max:255',
             'organization' => 'nullable|string|max:160',
             'rating' => 'required|integer|min:1|max:5',
             'message' => 'required|string|min:10|max:1200',
@@ -20,6 +19,7 @@ class ServiceReviewController extends Controller
 
         ServiceReview::create([
             ...$validated,
+            'email' => '',
             'is_approved' => true,
         ]);
 

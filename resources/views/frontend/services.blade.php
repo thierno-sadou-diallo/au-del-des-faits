@@ -112,43 +112,6 @@
         <div class="col-lg-5">
             <span class="badge mb-3">Avis clients</span>
             <h2 class="display-5 fw-bold">Un espace d'echange autour des services.</h2>
-
-                    <p>Offrir des services de gestion des relations avec les médias afin d’accroître votre visibilité et valoriser votre image publique. Assurer la rédaction et la diffusion de communiqués de presse, la prise de contact avec les journalistes et organes de presse, l’organisation d’interviews et de conférences de presse, ainsi que le développement de stratégies médiatiques efficaces pour promouvoir vos activités, projets, événements ou prises de position publiques.</p>
-                </div>
-            </article>
-        </div>
-        <div class="col-12">
-            <article class="card service-detail-card">
-                <div class="card-body">
-                    <h3 class="h4 fw-bold">PROMOTION DE LA JUSTICE SOCIALE</h3>
-                    <p>Engager dans des services visant à sensibiliser, éduquer et promouvoir la justice sociale par la mise en lumière des injustices et des inégalités dans la société et en travaillant pour les adresser de manière proactive. Apporter un soutien aux individus et aux groupes affectés par les inégalités sociales.</p>
-                </div>
-            </article>
-        </div>
-        <div class="col-12">
-            <article class="card service-detail-card">
-                <div class="card-body">
-                    <h3 class="h4 fw-bold">CONSULTATION ET CONSEIL</h3>
-                    <p>Offrir des services de consultation et de conseil dans les domaines de la sociologie, de la communication et relations publiques et de la justice sociale, en vous fournissant des conseils personnalisés et des recommandations basées sur une expertise approfondie dans ces domaines. Proposer un éventail de services axés sur la consultation et la résolution de problèmes familiaux, ainsi que sur la résolution des défis rencontrés dans l'éducation des enfants par les parents, les enseignants et les enfants eux-mêmes.</p>
-                </div>
-            </article>
-        </div>
-        <div class="col-12">
-            <article class="card service-detail-card">
-                <div class="card-body">
-                    <h3 class="h4 fw-bold">ASSISTANCE PSYCHOLOGIQUE</h3>
-                    <p>Offrir un service d'assistance psychologique dédié aux personnes traversant des périodes difficiles. Qu’il s’agisse des défis émotionnels, des conflits relationnels, des situations de stress intense ou des moments de crise personnelle, je suis là pour apporter mon soutien. Mon approche bienveillante et professionnelle vise à vous aider à surmonter ces épreuves en vous fournissant les outils nécessaires pour retrouver un équilibre et un bien-être émotionnel. Ensemble, nous travaillerons à développer des stratégies adaptées à vos besoins pour vous permettre de naviguer ces moments complexes avec plus de sérénité et de résilience.</p>
-                </div>
-            </article>
-        </div>
-    </div>
-</section>
-
-<section class="service-reviews page-hero p-4 p-lg-5 mb-6 mt-6" id="avis-services">
-    <div class="row g-4 align-items-start">
-        <div class="col-lg-5">
-            <span class="badge mb-3">Avis clients</span>
-            <h2 class="display-5 fw-bold">Un espace d'echange autour des services.</h2>
             <p class="lead">Partagez votre experience, une appreciation ou une suggestion. Les retours aident a ameliorer les accompagnements et a garder une relation directe avec les clients.</p>
 
             <form method="POST" action="{{ route('services.reviews.store') }}" class="review-form mt-4">
@@ -158,11 +121,6 @@
                         <label for="review_name" class="form-label fw-bold">Nom *</label>
                         <input type="text" class="form-control @error('name') is-invalid @enderror" id="review_name" name="name" value="{{ old('name') }}" required>
                         @error('name')<span class="invalid-feedback">{{ $message }}</span>@enderror
-                    </div>
-                    <div class="col-md-6">
-                        <label for="review_email" class="form-label fw-bold">Email *</label>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="review_email" name="email" value="{{ old('email') }}" required>
-                        @error('email')<span class="invalid-feedback">{{ $message }}</span>@enderror
                     </div>
                     <div class="col-md-7">
                         <label for="review_organization" class="form-label fw-bold">Organisation</label>
