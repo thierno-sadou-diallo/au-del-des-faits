@@ -27,8 +27,9 @@
     <meta property="twitter:title" content="{{ $seoTitle ?? $siteName }}">
     <meta property="twitter:description" content="{{ $seoDescription ?? $defaultDescription }}">
     <meta property="twitter:image" content="{{ $seoImage }}">
+    <link rel="icon" href="{{ asset('images/logo.PNG') }}" type="image/png">
+    <link rel="shortcut icon" href="{{ asset('images/logo.PNG') }}" type="image/png">
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <link rel="canonical" href="{{ url()->current() }}">
     <link rel="sitemap" type="application/xml" title="Sitemap" href="{{ url('/sitemap.xml') }}">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
