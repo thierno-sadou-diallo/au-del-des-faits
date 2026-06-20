@@ -39,14 +39,4 @@ class Comment extends Model
     {
         return $this->hasMany(self::class, 'parent_id');
     }
-
-    // Accessor to get the actual commentable (post or portfolio)
-    public function getCommentableAttribute()
-    {
-        if ($this->commentable_type && $this->commentable_id) {
-            return $this->morphTo();
-        }
-        return $this->post;
-    }
 }
-

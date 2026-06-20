@@ -138,7 +138,7 @@
                                             <div>
                                                 <div class="d-flex align-items-center gap-2">
                                                     <p class="fw-bold mb-0">{{ $comment->name }}</p>
-                                                    @if($comment->user && $comment->user->badge_level !== 'none')
+                                                    @if(false)
                                                         <span class="user-badge {{ $comment->user->badge_level }}">
                                                             {{ $comment->user->badge_level === 'curator' ? '⭐ Curateur' : ($comment->user->badge_level === 'super-fan' ? '❤️ Super Fan' : '👤 Contributeur') }}
                                                         </span>
