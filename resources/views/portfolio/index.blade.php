@@ -48,8 +48,8 @@
             @forelse($projects as $project)
                 <div class="col">
                     <div class="card h-100 shadow-sm border-0">
-                        @if(!empty($project->images[0]))
-                            <img src="{{ asset('storage/'.$project->images[0]) }}" class="card-img-top publication-thumb" alt="{{ $project->title }}" loading="lazy" decoding="async">
+                        @if($project->cover_image_url)
+                            <img src="{{ $project->cover_image_url }}" class="card-img-top publication-thumb" alt="{{ $project->title }}" loading="lazy" decoding="async">
                         @else
                             <div class="publication-thumb publication-thumb-empty">
                                 <i class="fas fa-camera-retro"></i>
@@ -62,7 +62,7 @@
                                 @endif
                             </div>
                             <h2 class="h5 fw-bold"><a href="{{ route('portfolio.show', $project->slug) }}" class="text-dark text-decoration-none">{{ $project->title }}</a></h2>
-                            <p class="text-muted">{{ \Illuminate\Support\Str::limit($project->description, 110) }}</p>
+                            <p class="text-muted">{{ \Illuminate\Support\Str::limit($project->excerpt, 110) }}</p>
                             <div class="mt-auto d-flex justify-content-between align-items-center">
                                 <small class="text-muted">{{ $project->likes ?? 0 }} likes</small>
                                 <a href="{{ route('portfolio.show', $project->slug) }}" class="btn btn-sm btn-outline-primary">Voir</a>

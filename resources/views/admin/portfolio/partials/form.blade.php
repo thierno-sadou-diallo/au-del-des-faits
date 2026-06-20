@@ -37,8 +37,8 @@
                 <div class="mt-5">
                     <p class="mb-3 text-xs font-black uppercase tracking-[0.18em] text-slate-400">Images actuelles</p>
                     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        @foreach($project->images as $image)
-                            <img class="aspect-video w-full rounded-xl object-cover ring-1 ring-slate-200" src="{{ asset('storage/'.$image) }}" alt="{{ $project->title }}">
+                        @foreach($project->image_urls as $imageUrl)
+                            <img class="aspect-video w-full rounded-xl object-cover ring-1 ring-slate-200" src="{{ $imageUrl }}" alt="{{ $project->title }}">
                         @endforeach
                     </div>
                     <p class="mt-3 text-xs text-amber-700">Un nouvel envoi remplacera toutes les images actuelles.</p>

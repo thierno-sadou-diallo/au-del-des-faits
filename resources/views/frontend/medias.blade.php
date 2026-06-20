@@ -49,8 +49,8 @@
             @forelse($mediaItems as $item)
                 <div class="col">
                     <article class="card h-100 shadow-sm border-0">
-                        @if(!empty($item->images[0]))
-                            <img src="{{ asset('storage/'.$item->images[0]) }}" class="card-img-top publication-thumb" alt="{{ $item->title }}" loading="lazy" decoding="async">
+                        @if($item->cover_image_url)
+                            <img src="{{ $item->cover_image_url }}" class="card-img-top publication-thumb" alt="{{ $item->title }}" loading="lazy" decoding="async">
                         @else
                             <div class="publication-thumb publication-thumb-empty">
                                 <i class="fas fa-photo-film"></i>
@@ -63,7 +63,7 @@
                                 @endif
                             </div>
                             <h2 class="h5 fw-bold"><a href="{{ route('portfolio.show', $item->slug) }}" class="text-dark text-decoration-none">{{ $item->title }}</a></h2>
-                            <p class="text-muted">{{ \Illuminate\Support\Str::limit($item->description, 110) }}</p>
+                            <p class="text-muted">{{ \Illuminate\Support\Str::limit($item->excerpt, 110) }}</p>
                             <div class="mt-auto d-flex flex-wrap gap-2 align-items-center">
                                 @if($item->video_url)
                                     <a href="{{ $item->video_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">Voir la vidéo</a>

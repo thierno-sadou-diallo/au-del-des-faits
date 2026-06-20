@@ -47,8 +47,8 @@
                 @forelse($projects as $project)
                     <article class="grid gap-4 p-5 lg:grid-cols-[220px_1fr_auto] lg:items-center">
                         <div class="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
-                            @if(!empty($project->images[0]))
-                                <img class="aspect-video w-full object-cover" src="{{ asset('storage/'.$project->images[0]) }}" alt="{{ $project->title }}">
+                            @if($project->cover_image_url)
+                                <img class="aspect-video w-full object-cover" src="{{ $project->cover_image_url }}" alt="{{ $project->title }}">
                             @else
                                 <div class="grid aspect-video place-items-center text-sm font-semibold text-slate-400">Aucune image</div>
                             @endif

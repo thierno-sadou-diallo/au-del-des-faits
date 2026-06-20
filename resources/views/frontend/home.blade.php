@@ -96,8 +96,8 @@
         @forelse($recentPosts->take(3) as $post)
             <div class="col-lg-4">
                 <article class="card content-card h-100">
-                    @if($post->image)
-                        <img src="{{ asset('storage/' . $post->image) }}" class="card-img-top" alt="{{ $post->title }}" loading="lazy" decoding="async">
+                    @if($post->image_url)
+                        <img src="{{ $post->image_url }}" class="card-img-top" alt="{{ $post->title }}" loading="lazy" decoding="async">
                     @endif
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
@@ -107,7 +107,7 @@
                             <small class="text-muted">{{ $post->created_at->format('d M Y') }}</small>
                         </div>
                         <h3>{{ $post->title }}</h3>
-                        <p>{{ \Illuminate\Support\Str::limit(strip_tags($post->content), 135) }}</p>
+                        <p>{{ \Illuminate\Support\Str::limit($post->excerpt, 135) }}</p>
                         <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-primary mt-auto">Lire l'article</a>
                     </div>
                 </article>
@@ -152,15 +152,15 @@
         @forelse($featuredProjects->take(3) as $project)
             <div class="col-lg-4">
                 <article class="card content-card h-100">
-                    @if(!empty($project->images[0]))
-                        <img src="{{ asset('storage/'.$project->images[0]) }}" class="card-img-top" alt="{{ $project->title }}" loading="lazy" decoding="async">
+                    @if($project->cover_image_url)
+                        <img src="{{ $project->cover_image_url }}" class="card-img-top" alt="{{ $project->title }}" loading="lazy" decoding="async">
                     @endif
                     <div class="card-body d-flex flex-column">
                         @if($project->category)
                             <span class="badge align-self-start mb-3">{{ $project->category->name }}</span>
                         @endif
                         <h3>{{ $project->title }}</h3>
-                        <p>{{ \Illuminate\Support\Str::limit($project->description, 125) }}</p>
+                        <p>{{ \Illuminate\Support\Str::limit($project->excerpt, 125) }}</p>
                         <a href="{{ route('portfolio.show', $project->slug) }}" class="btn btn-outline-primary mt-auto">Voir le média</a>
                     </div>
                 </article>

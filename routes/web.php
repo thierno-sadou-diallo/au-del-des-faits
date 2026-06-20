@@ -19,6 +19,7 @@ use App\Http\Controllers\ProfileController;
 use App\Models\Portfolio;
 use App\Models\Post;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
 
@@ -51,6 +52,12 @@ Route::get('/portfolio/{portfolio:slug}', [PortfolioController::class, 'show'])-
 
 Route::get('/refresh-captcha', fn () => response()->json(['captcha' => captcha_img()]))->name('captcha.refresh');
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'store'])->name('newsletter.subscribe');
+
+Route::get('/storage/{path}', function (string $path) {
+    abort_unless(Storage::disk('public')->exists($path), 404);
+
+    return Storage::disk('public')->response($path);
+})->where('path', '.*')->name('storage.public');
 
 Route::get('/robots.txt', function () {
     return response("User-agent: *\nAllow: /\nSitemap: ".url('/sitemap.xml')."\n", 200)

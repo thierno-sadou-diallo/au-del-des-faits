@@ -1,6 +1,12 @@
 @extends('frontend.layout')
 
 @section('content')
+@php
+    $shareUrl = request()->fullUrl();
+    $shareTitle = $project->title;
+    $shareText = \Illuminate\Support\Str::limit($project->excerpt, 140);
+@endphp
+
 <div class="portfolio-detail row gy-4">
     <div class="col-lg-8">
         <div class="portfolio-detail-card card shadow-sm border-0">
@@ -13,17 +19,19 @@
                     <small class="text-muted">{{ $project->likes ?? 0 }} likes</small>
                 </div>
                 <h1 class="display-5 fw-bold"><span class="gradient-text">{{ $project->title }}</span></h1>
-                <p class="text-secondary">{{ $project->description }}</p>
+                <p class="lead text-secondary">{{ $project->excerpt }}</p>
 
-                @if(!empty($project->images))
+                @if(!empty($project->image_urls))
                     <div class="row g-3 mt-4">
-                        @foreach($project->images as $image)
+                        @foreach($project->image_urls as $imageUrl)
                             <div class="col-md-6">
-                                <img src="{{ asset('storage/'.$image) }}" class="img-fluid rounded-4" alt="{{ $project->title }}">
+                                <img src="{{ $imageUrl }}" class="img-fluid rounded-4" alt="{{ $project->title }}">
                             </div>
                         @endforeach
                     </div>
                 @endif
+
+                <div class="content portfolio-content text-secondary mt-4">{!! $project->description_html !!}</div>
 
                 @if($project->technologies)
                     <div class="mt-4">
@@ -50,6 +58,37 @@
                         </button>
                     </form>
                 </div>
+
+                <section class="share-panel mt-4">
+                    <div class="d-flex flex-column flex-lg-row gap-3 align-items-lg-center justify-content-between">
+                        <div>
+                            <span class="section-kicker">Partager</span>
+                            <h2 class="h4 fw-bold mb-1"><span class="gradient-text">Diffusez ce media</span></h2>
+                            <p class="mb-0 text-muted">Partagez cette publication ou copiez son lien.</p>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="nativeSharePortfolio()">
+                            <i class="fas fa-share-nodes me-2"></i>Partager
+                        </button>
+                    </div>
+
+                    <div class="share-grid mt-4">
+                        <a class="share-button" href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode($shareUrl) }}" target="_blank" rel="noopener">
+                            <i class="fab fa-facebook-f"></i><span>Facebook</span>
+                        </a>
+                        <a class="share-button" href="https://twitter.com/intent/tweet?url={{ urlencode($shareUrl) }}&text={{ urlencode($shareTitle) }}" target="_blank" rel="noopener">
+                            <i class="fab fa-x-twitter"></i><span>X</span>
+                        </a>
+                        <a class="share-button" href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode($shareUrl) }}" target="_blank" rel="noopener">
+                            <i class="fab fa-linkedin-in"></i><span>LinkedIn</span>
+                        </a>
+                        <a class="share-button" href="https://api.whatsapp.com/send?text={{ urlencode($shareTitle.' '.$shareUrl) }}" target="_blank" rel="noopener">
+                            <i class="fab fa-whatsapp"></i><span>WhatsApp</span>
+                        </a>
+                        <button type="button" class="share-button" id="copy-portfolio-link" onclick="copyPortfolioLink()">
+                            <i class="fas fa-link"></i><span>Copier le lien</span>
+                        </button>
+                    </div>
+                </section>
 
                 <section class="mt-4">
                     <div class="card shadow-sm border-0">
@@ -178,6 +217,62 @@
         border: 1px solid rgba(245,158,11,.22);
         color: #78350f !important;
     }
+    .portfolio-content > * + * {
+        margin-top: 1rem;
+    }
+    .portfolio-content h1,
+    .portfolio-content h2,
+    .portfolio-content h3,
+    .portfolio-content h4 {
+        color: #0f172a;
+        font-family: 'Playfair Display', serif;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-top: 1.8rem;
+    }
+    .portfolio-content p,
+    .portfolio-content li {
+        line-height: 1.9;
+    }
+    .share-panel {
+        background:
+            linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.76)),
+            radial-gradient(circle at 88% 16%, rgba(56,189,248,.2), transparent 14rem);
+        border: 1px solid rgba(148, 163, 184, .24);
+        border-radius: 22px;
+        padding: 1.5rem;
+    }
+    .share-grid {
+        display: grid;
+        gap: .75rem;
+        grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    }
+    .share-button {
+        align-items: center;
+        background: #fff;
+        border: 1px solid rgba(148, 163, 184, .28);
+        border-radius: 16px;
+        color: #020617;
+        display: inline-flex;
+        font-weight: 900;
+        gap: .7rem;
+        justify-content: center;
+        min-height: 52px;
+        padding: .8rem 1rem;
+        text-decoration: none;
+        transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+        width: 100%;
+    }
+    button.share-button {
+        cursor: pointer;
+    }
+    .share-button:hover {
+        background: linear-gradient(135deg, #020617, #2563eb);
+        border-color: transparent;
+        box-shadow: 0 16px 34px rgba(15,23,42,.16);
+        color: #fff;
+        transform: translateY(-3px);
+    }
 
     /* Styles pour les commentaires */
     .comments-panel {
@@ -293,6 +388,12 @@
 
 @push('scripts')
 <script>
+    const portfolioShareData = {
+        title: @json($shareTitle),
+        text: @json($shareText),
+        url: @json($shareUrl),
+    };
+
     function refreshCaptcha() {
         $.ajax({
             url: '{{ route("captcha.refresh") }}',
@@ -304,6 +405,30 @@
     }
 
     // Animation des cœurs qui explosent
+    async function nativeSharePortfolio() {
+        if (navigator.share) {
+            await navigator.share(portfolioShareData);
+            return;
+        }
+
+        await copyPortfolioLink();
+    }
+
+    async function copyPortfolioLink() {
+        const button = document.getElementById('copy-portfolio-link');
+        try {
+            await navigator.clipboard.writeText(portfolioShareData.url);
+            if (button) {
+                const label = button.querySelector('span');
+                const previousText = label.textContent;
+                label.textContent = 'Lien copie';
+                window.setTimeout(() => label.textContent = previousText, 1800);
+            }
+        } catch (error) {
+            window.prompt('Copiez ce lien', portfolioShareData.url);
+        }
+    }
+
     document.getElementById('like-btn')?.addEventListener('click', function(e) {
         if (e.type === 'click' && !e.target.closest('form').onsubmit) {
             createHeartExplosion(e);

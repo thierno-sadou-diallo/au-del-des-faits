@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Portfolio extends Model
 {
@@ -29,6 +30,37 @@ class Portfolio extends Model
         'likes' => 'integer',
     ];
 
+    public function getCoverImageUrlAttribute(): ?string
+    {
+        return $this->storedImageUrl($this->images[0] ?? null);
+    }
+
+    public function getImageUrlsAttribute(): array
+    {
+        return collect($this->images ?? [])
+            ->map(fn ($image) => $this->storedImageUrl($image))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    public function getExcerptAttribute(): string
+    {
+        return Str::of(Str::markdown($this->description ?? '', ['html_input' => 'strip']))
+            ->stripTags()
+            ->squish()
+            ->limit(160)
+            ->toString();
+    }
+
+    public function getDescriptionHtmlAttribute(): string
+    {
+        return Str::markdown($this->description ?? '', [
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -37,5 +69,28 @@ class Portfolio extends Model
     public function comments()
     {
         return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    private function storedImageUrl(?string $path): ?string
+    {
+        if (blank($path)) {
+            return null;
+        }
+
+        $path = ltrim($path, '/');
+
+        if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+            return $path;
+        }
+
+        if (Str::startsWith($path, 'storage/')) {
+            return asset($path);
+        }
+
+        if (Str::startsWith($path, 'public/')) {
+            $path = Str::after($path, 'public/');
+        }
+
+        return asset('storage/'.$path);
     }
 }

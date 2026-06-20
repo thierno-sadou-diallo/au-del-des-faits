@@ -4,7 +4,7 @@
 @php
     $shareUrl = request()->fullUrl();
     $shareTitle = $post->title;
-    $shareText = \Illuminate\Support\Str::limit(strip_tags($post->excerpt ?? $post->content), 140);
+    $shareText = \Illuminate\Support\Str::limit($post->excerpt, 140);
 @endphp
 
 <div class="article-layout row gy-4">
@@ -21,7 +21,7 @@
                 </div>
 
                 <h1 class="display-5 fw-bold"><span class="gradient-text">{{ $post->title }}</span></h1>
-                <p class="lead text-secondary">{{ \Illuminate\Support\Str::limit(strip_tags($post->excerpt ?? $post->content), 180) }}</p>
+                <p class="lead text-secondary">{{ $post->excerpt }}</p>
 
                 <div class="voice-reader mt-4" id="voice-reader">
                     <div>
@@ -57,13 +57,13 @@
                     <div class="translation-output" id="translation-output" hidden></div>
                 </div>
 
-                @if($post->image)
-                    <img src="{{ asset('storage/'.$post->image) }}" class="img-fluid rounded-4 my-4" alt="{{ $post->title }}">
+                @if($post->image_url)
+                    <img src="{{ $post->image_url }}" class="article-main-image img-fluid rounded-4 my-4" alt="{{ $post->title }}">
                 @else
-                    <img src="{{ asset('images/ADF.jpg') }}" class="img-fluid rounded-4 my-4" alt="{{ $post->title }}">
+                    <img src="{{ asset('images/ADF.jpg') }}" class="article-main-image img-fluid rounded-4 my-4" alt="{{ $post->title }}">
                 @endif
 
-                <div class="content text-secondary">{!! $post->content !!}</div>
+                <div class="content article-content text-secondary">{!! $post->content_html !!}</div>
 
                 <div class="mt-4 d-flex flex-wrap gap-2 align-items-center">
                     <form action="{{ route('blog.like', $post) }}" method="POST">
@@ -224,7 +224,7 @@
         text: @json($shareText),
         url: @json($shareUrl),
     };
-    const articleVoiceText = @json($post->title . '. ' . strip_tags($post->excerpt ?? '') . ' ' . strip_tags($post->content));
+    const articleVoiceText = @json($post->title . '. ' . $post->excerpt . ' ' . strip_tags($post->content));
     let articleUtterance = null;
 
     function getArticleUtterance() {
@@ -386,6 +386,33 @@
     .article-reader .content {
         color: #334155;
         font-size: 1.08rem;
+    }
+    .article-main-image {
+        max-height: 520px;
+        object-fit: cover;
+        width: 100%;
+    }
+    .article-content > * + * {
+        margin-top: 1rem;
+    }
+    .article-content h1,
+    .article-content h2,
+    .article-content h3,
+    .article-content h4 {
+        color: #0f172a;
+        font-family: 'Playfair Display', serif;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-top: 1.8rem;
+    }
+    .article-content p,
+    .article-content li {
+        line-height: 1.9;
+    }
+    .article-content img {
+        border-radius: 18px;
+        height: auto;
+        max-width: 100%;
     }
     .article-reader .content p:first-of-type::first-letter {
         color: #2563eb;

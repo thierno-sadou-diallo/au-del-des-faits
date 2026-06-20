@@ -85,8 +85,8 @@
 
         <div class="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
             <label class="mb-3 block text-sm font-semibold text-slate-700" for="image">Image principale</label>
-            @if(!empty($post?->image))
-                <img class="mb-4 aspect-video w-full rounded-lg object-cover" src="{{ asset('storage/'.$post->image) }}" alt="{{ $post->title }}">
+            @if(!empty($post?->image_url))
+                <img class="mb-4 aspect-video w-full rounded-lg object-cover" src="{{ $post->image_url }}" alt="{{ $post->title }}">
             @endif
             <input id="image" class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-teal-700" type="file" name="image" accept="image/*">
             <p class="mt-3 text-xs text-slate-500">Format image, 2 Mo maximum.</p>

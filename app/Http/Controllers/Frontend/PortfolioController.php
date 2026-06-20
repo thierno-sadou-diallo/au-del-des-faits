@@ -54,8 +54,8 @@ class PortfolioController extends Controller
             'project' => $portfolio->load('category'),
             'similarProjects' => $similarProjects,
             'seoTitle' => $portfolio->title.' - Au-delà des faits',
-            'seoDescription' => str($portfolio->description)->limit(160)->toString(),
-            'seoImage' => ! empty($portfolio->images[0]) ? asset('storage/'.$portfolio->images[0]) : asset('images/logo.PNG'),
+            'seoDescription' => str($portfolio->excerpt)->limit(160)->toString(),
+            'seoImage' => $portfolio->cover_image_url ?: asset('images/logo.PNG'),
         ]);
     }
 }

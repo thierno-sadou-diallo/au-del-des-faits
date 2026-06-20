@@ -27,8 +27,8 @@
             @forelse($posts as $post)
                 <div class="col">
                     <div class="card h-100 shadow-sm border-0">
-                        @if($post->image)
-                            <img src="{{ asset('storage/'.$post->image) }}" class="card-img-top publication-thumb" alt="{{ $post->title }}" loading="lazy" decoding="async">
+                        @if($post->image_url)
+                            <img src="{{ $post->image_url }}" class="card-img-top publication-thumb" alt="{{ $post->title }}" loading="lazy" decoding="async">
                         @else
                             <div class="publication-thumb publication-thumb-empty">
                                 <i class="fas fa-newspaper"></i>
@@ -42,7 +42,7 @@
                                 <small class="text-muted ms-2">{{ $post->created_at->format('d/m/Y') }}</small>
                             </div>
                             <h2 class="h5 fw-bold"><a href="{{ route('blog.show', $post->slug) }}" class="text-dark text-decoration-none">{{ $post->title }}</a></h2>
-                            <p class="text-muted mb-4">{{ \Illuminate\Support\Str::limit(strip_tags($post->content), 135) }}</p>
+                            <p class="text-muted mb-4">{{ \Illuminate\Support\Str::limit($post->excerpt, 135) }}</p>
                             <div class="mt-auto d-flex justify-content-between align-items-center">
                                 <small class="text-muted">{{ $post->views }} vues</small>
                                 <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-sm btn-primary">Lire</a>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Post extends Model
 {
@@ -25,6 +26,28 @@ class Post extends Model
         'likes' => 'integer',
     ];
 
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->storedImageUrl($this->image);
+    }
+
+    public function getExcerptAttribute(): string
+    {
+        return Str::of(Str::markdown($this->content ?? '', ['html_input' => 'strip']))
+            ->stripTags()
+            ->squish()
+            ->limit(180)
+            ->toString();
+    }
+
+    public function getContentHtmlAttribute(): string
+    {
+        return Str::markdown($this->content ?? '', [
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
+    }
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -38,5 +61,28 @@ class Post extends Model
     public function morphedComments()
     {
         return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    private function storedImageUrl(?string $path): ?string
+    {
+        if (blank($path)) {
+            return null;
+        }
+
+        $path = ltrim($path, '/');
+
+        if (Str::startsWith($path, ['http://', 'https://', '//'])) {
+            return $path;
+        }
+
+        if (Str::startsWith($path, 'storage/')) {
+            return asset($path);
+        }
+
+        if (Str::startsWith($path, 'public/')) {
+            $path = Str::after($path, 'public/');
+        }
+
+        return asset('storage/'.$path);
     }
 }

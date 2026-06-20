@@ -60,8 +60,8 @@ class BlogController extends Controller
                 return Post::query()->where('status', 'published')->latest()->take(4)->get();
             }),
             'seoTitle' => $post->title.' - Au-delà des faits',
-            'seoDescription' => str($post->content)->stripTags()->limit(160)->toString(),
-            'seoImage' => $post->image ? asset('storage/'.$post->image) : asset('images/logo.PNG'),
+            'seoDescription' => str($post->excerpt)->limit(160)->toString(),
+            'seoImage' => $post->image_url ?: asset('images/logo.PNG'),
         ]);
     }
 
