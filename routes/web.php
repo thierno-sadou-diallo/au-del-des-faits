@@ -53,6 +53,12 @@ Route::get('/portfolio/{portfolio:slug}', [PortfolioController::class, 'show'])-
 Route::get('/refresh-captcha', fn () => response()->json(['captcha' => captcha_img()]))->name('captcha.refresh');
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'store'])->name('newsletter.subscribe');
 
+Route::get('/media-storage/{path}', function (string $path) {
+    abort_unless(Storage::disk('public')->exists($path), 404);
+
+    return Storage::disk('public')->response($path);
+})->where('path', '.*')->name('media.storage');
+
 Route::get('/storage/{path}', function (string $path) {
     abort_unless(Storage::disk('public')->exists($path), 404);
 

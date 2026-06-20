@@ -76,13 +76,13 @@ class Post extends Model
         }
 
         if (Str::startsWith($path, 'storage/')) {
-            return asset($path);
+            $path = Str::after($path, 'storage/');
         }
 
         if (Str::startsWith($path, 'public/')) {
             $path = Str::after($path, 'public/');
         }
 
-        return asset('storage/'.$path);
+        return url('media-storage/'.$path);
     }
 }
