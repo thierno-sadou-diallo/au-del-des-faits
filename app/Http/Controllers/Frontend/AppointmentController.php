@@ -102,12 +102,6 @@ class AppointmentController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
-        if ($validated['appointment_type'] === 'request_day' && $this->bookableSlotsQuery()->exists()) {
-            return back()
-                ->with('error', 'Veuillez choisir une date active dans le calendrier. La demande libre est ouverte uniquement quand tous les creneaux admin sont complets.')
-                ->withInput();
-        }
-
         try {
             $appointment = DB::transaction(function () use ($validated) {
                 if ($validated['appointment_type'] === 'available_day') {

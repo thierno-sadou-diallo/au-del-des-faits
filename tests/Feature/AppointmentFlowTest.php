@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Appointment;
 use App\Models\AvailabilitySlot;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -30,17 +31,22 @@ class AppointmentFlowTest extends TestCase
         $this->assertSame('request', $appointment->availabilitySlot->slot_type);
     }
 
-    public function test_visitor_must_choose_admin_date_when_one_exists(): void
+    public function test_visitor_can_request_a_date_even_when_admin_slots_exist(): void
     {
         $slot = $this->availableSlot(now()->addDays(3));
         $requestedDate = now()->addDays(7)->toDateString();
 
-        $this->from(route('appointment'))->post(route('appointment.store'), $this->payload([
+        $this->post(route('appointment.store'), $this->payload([
             'appointment_type' => 'request_day',
             'appointment_date' => $requestedDate,
-        ]))->assertRedirect(route('appointment'));
+        ]))->assertRedirect(route('appointment.thankyou'));
 
-        $this->assertDatabaseCount('appointments', 0);
+        $appointment = Appointment::first();
+
+        $this->assertSame($requestedDate, $appointment->appointment_date->toDateString());
+        $this->assertSame('pending', $appointment->status);
+        $this->assertFalse($appointment->is_approved);
+        $this->assertSame('request', $appointment->availabilitySlot->slot_type);
         $this->assertSame(0, $slot->fresh()->current_appointments);
     }
 
@@ -62,6 +68,50 @@ class AppointmentFlowTest extends TestCase
         $this->assertSame('confirmed', $appointment->status);
         $this->assertTrue($appointment->is_approved);
         $this->assertSame(1, $slot->fresh()->current_appointments);
+    }
+
+    public function test_admin_created_slot_is_exposed_to_visitor_calendar(): void
+    {
+        $date = now()->addDays(9);
+
+        $slot = AvailabilitySlot::create([
+            'available_date' => $date->toDateString(),
+            'slot_type' => 'available',
+            'start_time' => $date->copy()->setTime(10, 0),
+            'end_time' => $date->copy()->setTime(11, 0),
+            'is_available' => true,
+            'max_appointments' => 3,
+            'current_appointments' => 1,
+        ]);
+
+        $response = $this->get(route('appointment'));
+
+        $response->assertOk();
+        $response->assertSee((string) $slot->id);
+        $response->assertSee($date->toDateString());
+        $response->assertSee('"remaining":2', false);
+    }
+
+    public function test_admin_slot_form_sets_available_date_for_calendar(): void
+    {
+        $admin = User::factory()->create([
+            'is_admin' => true,
+            'email_verified_at' => now(),
+        ]);
+        $date = now()->addDays(10)->setTime(14, 0);
+
+        $this->actingAs($admin)->post(route('admin.availability-slots.store'), [
+            'start_time' => $date->format('Y-m-d\TH:i'),
+            'end_time' => $date->copy()->addHour()->format('Y-m-d\TH:i'),
+            'is_available' => '1',
+            'max_appointments' => 2,
+            'description' => 'Consultation',
+        ])->assertRedirect(route('admin.availability-slots.index'));
+
+        $slot = AvailabilitySlot::first();
+
+        $this->assertSame($date->toDateString(), $slot->available_date->toDateString());
+        $this->assertSame('available', $slot->slot_type);
     }
 
     public function test_admin_capacity_cannot_be_exceeded(): void

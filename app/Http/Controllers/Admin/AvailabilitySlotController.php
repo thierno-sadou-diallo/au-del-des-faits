@@ -150,6 +150,8 @@ class AvailabilitySlotController extends Controller
         $validated['start_time'] = str_replace('T', ' ', $validated['start_time']);
         $validated['end_time'] = str_replace('T', ' ', $validated['end_time']);
         $validated['is_available'] = $request->boolean('is_available');
+        $validated['available_date'] = Carbon::parse($validated['start_time'])->toDateString();
+        $validated['slot_type'] = 'available';
 
         AvailabilitySlot::create($validated);
 
@@ -177,6 +179,8 @@ class AvailabilitySlotController extends Controller
         $validated['start_time'] = str_replace('T', ' ', $validated['start_time']);
         $validated['end_time'] = str_replace('T', ' ', $validated['end_time']);
         $validated['is_available'] = $request->boolean('is_available');
+        $validated['available_date'] = Carbon::parse($validated['start_time'])->toDateString();
+        $validated['slot_type'] = 'available';
 
         $availabilitySlot->update($validated);
 

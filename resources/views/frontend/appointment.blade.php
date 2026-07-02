@@ -80,12 +80,10 @@
                             <span class="legend-color available"></span>
                             <small>Disponible (approuvé automatiquement)</small>
                         </div>
-                        @unless($hasAdminAvailableDates)
-                            <div class="legend-item">
-                                <span class="legend-color requested"></span>
-                                <small>Date proposée (validation admin)</small>
-                            </div>
-                        @endunless
+                        <div class="legend-item">
+                            <span class="legend-color requested"></span>
+                            <small>Date proposée (validation admin)</small>
+                        </div>
                     </div>
                 </div>
 
@@ -426,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const dayNumber = date.getDate();
             const dateStr = formatDate(date);
             const isAvailable = isCurrentMonth && availableDates.has(dateStr);
-            const canRequestDate = isCurrentMonth && !isPast && !hasAdminAvailableDates;
+            const canRequestDate = isCurrentMonth && !isPast && !isAvailable;
             const dateSlots = availableSlotMap[dateStr] || [];
             const firstSlot = dateSlots[0] || null;
             const remainingPlaces = dateSlots.reduce((total, slot) => total + slot.remaining, 0);
@@ -464,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 requestOption.id = 'request-date-option';
                 requestOption.className = 'alert alert-warning mt-2';
                 requestOption.innerHTML = hasAdminAvailableDates
-                    ? '<i class="fas fa-calendar-days me-2"></i>Consultez les autres mois pour trouver une date active.'
+                    ? '<i class="fas fa-calendar-days me-2"></i>Consultez les autres mois pour une date admin, ou cliquez une date orange pour proposer un rendez-vous.'
                     : '<i class="fas fa-lightbulb me-2"></i><strong>Astuce:</strong> Cliquez sur une date future pour proposer un rendez-vous a approuver.';
                 noAvailMsg.parentElement.insertBefore(requestOption, noAvailMsg.nextElementSibling);
             }
