@@ -26,6 +26,12 @@ class Post extends Model
         'likes' => 'integer',
     ];
 
+    protected $appends = [
+        'content_html',
+        'excerpt',
+        'image_url',
+    ];
+
     public function getImageUrlAttribute(): ?string
     {
         return $this->storedImageUrl($this->image);

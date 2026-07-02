@@ -30,6 +30,13 @@ class Portfolio extends Model
         'likes' => 'integer',
     ];
 
+    protected $appends = [
+        'description_html',
+        'excerpt',
+        'cover_image_url',
+        'image_urls',
+    ];
+
     public function getCoverImageUrlAttribute(): ?string
     {
         return $this->storedImageUrl($this->images[0] ?? null);

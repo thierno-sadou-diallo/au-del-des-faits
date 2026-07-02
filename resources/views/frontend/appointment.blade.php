@@ -6,10 +6,10 @@
         <div class="col-lg-8">
             <span class="badge mb-3">Rendez-vous</span>
             <h1 class="display-3 fw-bold mb-3"><span class="gradient-text">Demander un rendez-vous</span></h1>
-            <p class="lead mb-4">Choisissez un créneau disponible, présentez votre besoin, puis suivez l’évolution de votre demande avec une référence privée.</p>
+            <p class="lead mb-4">Sélectionnez une date disponible ou demandez un jour spécifique, présentez votre besoin, puis suivez l'évolution de votre demande avec une référence privée.</p>
             <div class="appointment-hero-actions">
                 <a href="#appointment-form" class="btn btn-primary btn-lg">
-                    <i class="fas fa-calendar-check me-2"></i>Choisir un créneau
+                    <i class="fas fa-calendar-check me-2"></i>Choisir une date
                 </a>
                 <a href="{{ route('appointment.status') }}" class="btn btn-outline-primary btn-lg">
                     <i class="fas fa-list-check me-2"></i>Suivre ma demande
@@ -36,50 +36,64 @@
     </div>
 </section>
 
-<section class="mb-5">
+<section class="mb-5" id="appointment-form">
     <div class="row g-4">
         <div class="col-lg-5">
             <div class="appointment-profile art-card h-100 p-4 p-lg-5">
-                <span class="section-kicker">Disponibilités</span>
-                <h2 class="h3 fw-bold mt-3 mb-4"><span class="gradient-text">Sélectionnez le moment qui vous convient.</span></h2>
+                <span class="section-kicker">Sélectionner une date</span>
+                <h2 class="h3 fw-bold mt-3 mb-4"><span class="gradient-text">Dates disponibles ou à demander</span></h2>
 
-                <div class="slot-list">
-                    @forelse ($slots as $slot)
-                        <button
-                            type="button"
-                            class="slot-option"
-                            data-slot-id="{{ $slot->id }}"
-                            data-slot-label="{{ $slot->start_time->format('d/m/Y H:i') }} - {{ $slot->end_time->format('H:i') }}"
-                        >
-                            <span>
-                                <strong>{{ $slot->start_time->translatedFormat('d M Y') }}</strong>
-                                <small>{{ $slot->start_time->format('H:i') }} - {{ $slot->end_time->format('H:i') }}</small>
-                                @if($slot->description)
-                                    <small class="slot-description">{{ $slot->description }}</small>
-                                @endif
-                            </span>
-                            <em>{{ $slot->max_appointments - $slot->current_appointments }} place(s)</em>
+                <!-- Calendrier pour sélectionner une date -->
+                <div class="calendar-selector mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <button class="btn btn-sm btn-outline-primary" id="prev-month" type="button">
+                            <i class="fas fa-chevron-left"></i>
                         </button>
-                    @empty
-                        <div class="alert alert-warning mb-0">
-                            Aucun créneau n’est disponible pour le moment. Vous pouvez envoyer un message via la page contact.
+                        <h5 id="month-display" class="mb-0">{{ $currentDate->locale('fr')->monthName }} {{ $currentDate->year }}</h5>
+                        <button class="btn btn-sm btn-outline-primary" id="next-month" type="button">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <!-- Grille calendaire -->
+                    <div class="calendar-grid-user mb-3">
+                        <div class="calendar-day-header">Lun</div>
+                        <div class="calendar-day-header">Mar</div>
+                        <div class="calendar-day-header">Mer</div>
+                        <div class="calendar-day-header">Jeu</div>
+                        <div class="calendar-day-header">Ven</div>
+                        <div class="calendar-day-header">Sam</div>
+                        <div class="calendar-day-header">Dim</div>
+
+                        <div id="calendar-days"></div>
+                    </div>
+
+                    <!-- Informations sur les dates -->
+                    <div class="date-legend">
+                        <div class="legend-item">
+                            <span class="legend-color available"></span>
+                            <span>Date disponible (auto-approuvée)</span>
                         </div>
-                    @endforelse
+                        <div class="legend-item">
+                            <span class="legend-color request"></span>
+                            <span>Demande à approuver</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="appointment-note mt-4">
                     <i class="fas fa-shield-halved"></i>
-                    <p class="mb-0">Après envoi, une référence de suivi vous permet de consulter l’état de la demande sans créer de compte.</p>
+                    <p class="mb-0">Après envoi, une référence de suivi vous permet de consulter l'état de la demande sans créer de compte.</p>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-7">
-            <div class="appointment-form-card card h-100" id="appointment-form">
+            <div class="appointment-form-card card h-100">
                 <div class="card-body p-4 p-lg-5">
-                    <span class="section-kicker">Demande</span>
+                    <span class="section-kicker">Formulaire</span>
                     <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
-                        <h2 class="h3 fw-bold mt-3 mb-0">Informations du rendez-vous</h2>
+                        <h2 class="h3 fw-bold mt-3 mb-0">Vos informations</h2>
                         <a href="{{ route('appointment.status') }}" class="status-link">
                             <i class="fas fa-magnifying-glass me-2"></i>Suivre une demande
                         </a>
@@ -99,13 +113,17 @@
                         <div class="alert alert-danger">{{ session('error') }}</div>
                     @endif
 
-                    <form method="POST" action="{{ route('appointment.store') }}" class="row g-3" id="appointmentBookingForm">
+                    <form method="POST" action="{{ route('appointment.store') }}" class="row g-3" id="appointmentForm">
                         @csrf
-                        <input type="hidden" id="availability_slot_id" name="availability_slot_id" value="{{ old('availability_slot_id') }}" required>
 
-                        <div id="slot-selection-error" class="col-12 d-none">
-                            <div class="alert alert-warning mb-0">
-                                Veuillez sélectionner un créneau disponible dans la liste à gauche avant d’envoyer votre demande.
+                        <!-- Date sélectionnée -->
+                        <input type="hidden" id="appointment_type" name="appointment_type" value="">
+                        <input type="hidden" id="appointment_date" name="appointment_date" value="">
+
+                        <div id="selected-date-info" class="col-12 d-none">
+                            <div class="alert alert-info">
+                                <i class="fas fa-calendar me-2"></i>
+                                <strong>Date sélectionnée:</strong> <span id="selected-date-display"></span>
                             </div>
                         </div>
 
@@ -138,7 +156,7 @@
                             @error('message')<span class="invalid-feedback">{{ $message }}</span>@enderror
                         </div>
                         <div class="col-12">
-                            <button type="submit" class="btn btn-primary btn-lg w-100" id="appointment-submit" @if($slots->isEmpty()) disabled @endif>
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="appointment-submit" disabled>
                                 <i class="fas fa-paper-plane me-2"></i>Envoyer la demande
                             </button>
                         </div>
@@ -148,13 +166,12 @@
         </div>
     </div>
 </section>
-@endsection
 
-@push('styles')
 <style>
     .appointment-hero { min-height: 420px; padding-top: clamp(2rem, 5vw, 5rem) !important; }
     .appointment-hero .lead { max-width: 780px; }
     .appointment-hero-actions { display: flex; flex-wrap: wrap; gap: .85rem; }
+    
     .appointment-signal {
         background: rgba(255, 255, 255, .1);
         border: 1px solid rgba(251, 191, 36, .28);
@@ -163,6 +180,7 @@
         padding: 1.25rem;
         backdrop-filter: blur(14px);
     }
+    
     .signal-row {
         align-items: center;
         border-top: 1px solid rgba(255, 255, 255, .14);
@@ -171,6 +189,7 @@
         margin-top: 1rem;
         padding-top: 1rem;
     }
+    
     .signal-row strong {
         color: #fff;
         font-family: 'Playfair Display', serif;
@@ -178,49 +197,119 @@
         line-height: 1;
         min-width: 42px;
     }
+    
     .signal-row span { color: rgba(226, 232, 240, .9); font-weight: 800; }
+    
     .appointment-profile,
     .appointment-form-card {
         background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.94));
     }
-    .slot-list { display: grid; gap: .85rem; }
-    .slot-option {
-        align-items: center;
-        background: rgba(255, 255, 255, .82);
-        border: 1px solid rgba(148, 163, 184, .24);
-        border-radius: 18px;
-        display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        padding: 1rem;
-        text-align: left;
-        width: 100%;
+
+    .calendar-grid-user {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        margin-bottom: 15px;
     }
-    .slot-option:hover,
-    .slot-option.is-selected {
-        border-color: rgba(37, 99, 235, .48);
-        box-shadow: 0 16px 34px rgba(15, 23, 42, .08);
+
+    .calendar-day-header {
+        font-weight: bold;
+        text-align: center;
+        padding: 8px;
+        background: #f5f5f5;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        grid-column: span 1;
+    }
+
+    .calendar-day-cell {
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: white;
+        font-size: 0.9rem;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .calendar-day-cell:hover:not(.other-month):not(.past) {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
         transform: translateY(-2px);
     }
-    .slot-option strong,
-    .slot-option small { display: block; }
-    .slot-option small { color: #64748b; font-weight: 800; margin-top: .2rem; }
-    .slot-option .slot-description {
-        color: #475569;
-        font-weight: 700;
-        line-height: 1.45;
-        max-width: 28rem;
+
+    .calendar-day-cell.other-month {
+        background: #f9f9f9;
+        color: #ccc;
+        cursor: not-allowed;
     }
-    .slot-option em {
-        background: #eff6ff;
-        border-radius: 999px;
-        color: #2563eb;
-        font-size: .78rem;
-        font-style: normal;
-        font-weight: 900;
-        padding: .4rem .7rem;
-        white-space: nowrap;
+
+    .calendar-day-cell.past {
+        background: #f5f5f5;
+        cursor: not-allowed;
+        opacity: 0.6;
     }
+
+    .calendar-day-cell.available {
+        border-color: #28a745;
+        background: rgba(40, 167, 69, 0.05);
+    }
+
+    .calendar-day-cell.available.selected {
+        background: #28a745;
+        color: white;
+        border-color: #28a745;
+    }
+
+    .calendar-day-cell.request {
+        border-color: #ffc107;
+        background: rgba(255, 193, 7, 0.05);
+    }
+
+    .calendar-day-cell.request.selected {
+        background: #ffc107;
+        color: white;
+        border-color: #ffc107;
+    }
+
+    .date-legend {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 12px;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 2px solid;
+    }
+
+    .legend-color.available {
+        background: rgba(40, 167, 69, 0.1);
+        border-color: #28a745;
+    }
+
+    .legend-color.request {
+        background: rgba(255, 193, 7, 0.1);
+        border-color: #ffc107;
+    }
+
     .appointment-note {
         align-items: flex-start;
         background: #fff7ed;
@@ -230,7 +319,9 @@
         gap: .85rem;
         padding: 1rem;
     }
+
     .appointment-note i { color: #b45309; margin-top: .25rem; }
+
     .status-link {
         border: 1px solid rgba(37,99,235,.22);
         border-radius: 999px;
@@ -240,42 +331,123 @@
         padding: .55rem .85rem;
         text-decoration: none;
     }
+
+    .status-link:hover {
+        text-decoration: underline;
+    }
+
     @media (max-width: 575.98px) {
         .appointment-hero-actions .btn { width: 100%; }
-        .slot-option { align-items: flex-start; flex-direction: column; }
     }
 </style>
-@endpush
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const input = document.getElementById('availability_slot_id');
-        const error = document.getElementById('slot-selection-error');
-        const form = document.getElementById('appointmentBookingForm');
-        const submit = document.getElementById('appointment-submit');
+document.addEventListener('DOMContentLoaded', function() {
+    let currentMonth = {{ $month }};
+    let currentYear = {{ $year }};
+    const availableDays = {!! json_encode($availableDays) !!};
+    
+    function generateCalendar() {
+        const firstDay = new Date(currentYear, currentMonth - 1, 1);
+        const lastDay = new Date(currentYear, currentMonth, 0);
+        const daysInMonth = lastDay.getDate();
+        const startingDayOfWeek = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
 
-        document.querySelectorAll('.slot-option').forEach((button) => {
-            if (input.value && input.value === button.dataset.slotId) {
-                button.classList.add('is-selected');
-            }
+        const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                          'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+        document.getElementById('month-display').textContent = 
+            monthNames[currentMonth - 1] + ' ' + currentYear;
 
-            button.addEventListener('click', () => {
-                document.querySelectorAll('.slot-option').forEach((item) => item.classList.remove('is-selected'));
-                button.classList.add('is-selected');
-                input.value = button.dataset.slotId;
-                error.classList.add('d-none');
-                submit.disabled = false;
-                form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            });
+        let calendarDays = '';
+        let date = new Date(currentYear, currentMonth - 1, 1);
+        date.setDate(date.getDate() - startingDayOfWeek);
+
+        for (let i = 0; i < 42; i++) {
+            const isCurrentMonth = date.getMonth() === currentMonth - 1;
+            const isPast = date < new Date();
+            const dayNumber = date.getDate();
+            const isAvailable = isCurrentMonth && availableDays.includes(dayNumber);
+            const dateStr = date.getFullYear() + '-' + 
+                          String(date.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(date.getDate()).padStart(2, '0');
+
+            let classes = 'calendar-day-cell';
+            if (!isCurrentMonth) classes += ' other-month';
+            if (isPast && isCurrentMonth) classes += ' past';
+            if (isAvailable && isCurrentMonth) classes += ' available';
+            if (!isAvailable && isCurrentMonth && !isPast) classes += ' request';
+
+            calendarDays += `<div class="${classes}" data-date="${dateStr}" data-day="${dayNumber}">
+                ${dayNumber}
+            </div>`;
+            
+            date.setDate(date.getDate() + 1);
+        }
+
+        document.getElementById('calendar-days').innerHTML = calendarDays;
+
+        // Ajouter les event listeners
+        document.querySelectorAll('.calendar-day-cell:not(.other-month):not(.past)').forEach(cell => {
+            cell.addEventListener('click', selectDate);
         });
+    }
 
-        form.addEventListener('submit', (event) => {
-            if (! input.value) {
-                event.preventDefault();
-                error.classList.remove('d-none');
-            }
+    function selectDate(e) {
+        const date = e.target.dataset.date;
+        const isAvailable = e.target.classList.contains('available');
+        
+        document.querySelectorAll('.calendar-day-cell').forEach(cell => {
+            cell.classList.remove('selected');
         });
+        
+        e.target.classList.add('selected');
+        
+        document.getElementById('appointment_date').value = date;
+        document.getElementById('appointment_type').value = isAvailable ? 'available_day' : 'request_day';
+        document.getElementById('selected-date-display').textContent = 
+            new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', 
+                {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+        
+        document.getElementById('selected-date-info').classList.remove('d-none');
+        document.getElementById('appointment-submit').disabled = false;
+
+        if (!isAvailable) {
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-warning mt-2';
+            alert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Cette date nécessitera une approbation de l\'administrateur.';
+            
+            const existingAlert = document.getElementById('selected-date-info').querySelector('.alert-warning');
+            if (existingAlert) existingAlert.remove();
+            
+            document.getElementById('selected-date-info').appendChild(alert);
+        } else {
+            const existingAlert = document.getElementById('selected-date-info').querySelector('.alert-warning');
+            if (existingAlert) existingAlert.remove();
+        }
+    }
+
+    document.getElementById('prev-month').addEventListener('click', () => {
+        currentMonth--;
+        if (currentMonth < 1) {
+            currentMonth = 12;
+            currentYear--;
+        }
+        generateCalendar();
     });
+
+    document.getElementById('next-month').addEventListener('click', () => {
+        currentMonth++;
+        if (currentMonth > 12) {
+            currentMonth = 1;
+            currentYear++;
+        }
+        generateCalendar();
+    });
+
+    generateCalendar();
+});
 </script>
 @endpush
+
+@endsection

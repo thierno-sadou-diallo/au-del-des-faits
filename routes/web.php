@@ -122,6 +122,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
     Route::resource('portfolios', AdminPortfolioController::class)->except('show');
     Route::resource('availability-slots', AvailabilitySlotController::class)->except('show');
+    Route::get('/availability-slots/calendar', [AvailabilitySlotController::class, 'calendar'])->name('availability-slots.calendar');
+    Route::post('/availability-slots/toggle-day', [AvailabilitySlotController::class, 'toggleDay'])->name('availability-slots.toggle-day');
+    Route::get('/appointments/pending-requests', [AvailabilitySlotController::class, 'pendingRequests'])->name('appointments.pending-requests');
+    Route::patch('/appointments/{appointment}/approve', [AvailabilitySlotController::class, 'approveRequest'])->name('appointments.approve');
+    Route::patch('/appointments/{appointment}/reject', [AvailabilitySlotController::class, 'rejectRequest'])->name('appointments.reject');
     Route::resource('appointments', AdminAppointmentController::class)->only(['index', 'show', 'destroy']);
     Route::patch('/appointments/{appointment}/status', [AdminAppointmentController::class, 'updateStatus'])->name('appointments.updateStatus');
     Route::patch('/appointments/{appointment}/schedule', [AdminAppointmentController::class, 'schedule'])->name('appointments.schedule');

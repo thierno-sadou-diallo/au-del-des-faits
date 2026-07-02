@@ -8,6 +8,7 @@ use App\Models\AvailabilitySlot;
 use App\Models\User;
 use App\Notifications\AppointmentCreated;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
@@ -16,6 +17,19 @@ class AppointmentController extends Controller
 {
     public function index()
     {
+        $month = request('month', now()->month);
+        $year = request('year', now()->year);
+        $currentDate = Carbon::createFromDate($year, $month, 1);
+
+        // Récupérer les jours disponibles du mois
+        $availableDays = AvailabilitySlot::availableDays()
+            ->whereYear('available_date', $year)
+            ->whereMonth('available_date', $month)
+            ->pluck('available_date')
+            ->map(fn($date) => $date->day)
+            ->toArray();
+
+        // Récupérer aussi les anciens créneaux horaires si existants
         $slots = AvailabilitySlot::where('is_available', true)
             ->where('start_time', '>=', now())
             ->whereColumn('current_appointments', '<', 'max_appointments')
@@ -24,6 +38,10 @@ class AppointmentController extends Controller
 
         return view('frontend.appointment', [
             'slots' => $slots,
+            'currentDate' => $currentDate,
+            'availableDays' => $availableDays,
+            'month' => $month,
+            'year' => $year,
             'seoTitle' => 'Rendez-vous - Au-delà des faits',
             'seoDescription' => 'Prenez rendez-vous avec Halimatou Keita pour discuter de votre projet.',
         ]);
@@ -32,7 +50,9 @@ class AppointmentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'availability_slot_id' => 'required|exists:availability_slots,id',
+            'appointment_type' => 'required|in:available_day,request_day',
+            'appointment_date' => 'required|date_format:Y-m-d|after_or_equal:today',
+            'availability_slot_id' => 'nullable|exists:availability_slots,id',
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:20',
@@ -41,27 +61,33 @@ class AppointmentController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
-        try {
-            $appointment = DB::transaction(function () use ($validated) {
-                $slot = AvailabilitySlot::lockForUpdate()->findOrFail($validated['availability_slot_id']);
+        // Si c'est un créneau disponible, vérifier qu'il existe
+        if ($validated['appointment_type'] === 'available_day') {
+            $availableDay = AvailabilitySlot::availableDays()
+                ->where('available_date', $validated['appointment_date'])
+                ->first();
 
-                if ($slot->start_time->isPast() || ! $slot->isAvailable()) {
-                    throw new \RuntimeException('Ce créneau n\'est plus disponible.');
-                }
-
-                $appointment = Appointment::create([
-                    ...$validated,
-                    'tracking_token' => $this->makeTrackingToken(),
-                ]);
-                $slot->increment('current_appointments');
-
-                return $appointment;
-            });
-        } catch (\RuntimeException $e) {
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json(['message' => $e->getMessage()], 422);
+            if (!$availableDay) {
+                return back()->with('error', 'Ce jour n\'est pas disponible.')->withInput();
             }
-            return back()->with('error', $e->getMessage())->withInput();
+        }
+
+        try {
+            $appointment = Appointment::create([
+                'appointment_date' => $validated['appointment_date'],
+                'availability_slot_id' => $validated['availability_slot_id'],
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'organization' => $validated['organization'],
+                'subject' => $validated['subject'],
+                'message' => $validated['message'],
+                'tracking_token' => Str::random(64),
+                'status' => 'pending',
+                'is_approved' => $validated['appointment_type'] === 'available_day', // Auto-approuvé si jour disponible
+            ]);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Une erreur s\'est produite lors de la création de votre rendez-vous.')->withInput();
         }
 
         try {
@@ -70,7 +96,11 @@ class AppointmentController extends Controller
             // La demande reste enregistrée même si l'envoi de notification échoue.
         }
 
-        $message = 'Votre rendez-vous a été demandé avec succès. L\'équipe d\'Au-delà des faits reviendra vers vous rapidement.';
+        if ($validated['appointment_type'] === 'available_day') {
+            $message = 'Votre rendez-vous a été confirmé avec succès. L\'équipe d\'Au-delà des faits vous contactera pour confirmer l\'horaire.';
+        } else {
+            $message = 'Votre demande de rendez-vous a été envoyée. L\'équipe d\'Au-delà des faits examinera votre demande et vous contactera pour confirmation.';
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -100,66 +130,48 @@ class AppointmentController extends Controller
 
     public function statusForm()
     {
-        return view('frontend.appointment-status', [
-            'appointment' => null,
-            'seoTitle' => 'Suivi de rendez-vous - Au-dela des faits',
-            'seoDescription' => 'Consultez l evolution de votre demande de rendez-vous.',
+        return view('frontend.appointment-status-form', [
+            'seoTitle' => 'Suivi de rendez-vous - Au-delà des faits',
+            'seoDescription' => 'Suivez l\'état de votre demande de rendez-vous.',
         ]);
     }
 
     public function statusLookup(Request $request)
     {
-        $validated = $request->validate([
-            'tracking_token' => 'required|string|max:64',
-            'email' => 'required|email|max:255',
+        $request->validate([
+            'email' => 'required|email',
         ]);
 
-        $appointment = Appointment::where('tracking_token', $validated['tracking_token'])
-            ->where('email', $validated['email'])
-            ->first();
+        $appointments = Appointment::where('email', $request->email)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        if (! $appointment) {
-            return back()
-                ->withErrors(['tracking_token' => 'Aucune demande ne correspond a cette reference et cet email.'])
-                ->withInput();
+        if ($appointments->isEmpty()) {
+            return back()->with('error', 'Aucun rendez-vous trouvé pour cet email.');
         }
 
-        return redirect()->route('appointment.status.show', $appointment->tracking_token);
-    }
-
-    public function statusShow(Appointment $appointment)
-    {
         return view('frontend.appointment-status', [
-            'appointment' => $appointment->load('availabilitySlot'),
-            'seoTitle' => 'Suivi de rendez-vous - Au-dela des faits',
-            'seoDescription' => 'Consultez l evolution de votre demande de rendez-vous.',
+            'appointments' => $appointments,
+            'seoTitle' => 'Votre suivi - Au-delà des faits',
+            'seoDescription' => 'Consultez l\'état de vos demandes de rendez-vous.',
         ]);
     }
 
-    public function getSlots()
+    public function statusShow(string $token)
     {
-        $slots = AvailabilitySlot::where('is_available', true)
-            ->where('start_time', '>=', now())
-            ->whereColumn('current_appointments', '<', 'max_appointments')
-            ->orderBy('start_time')
-            ->get()
-            ->map(function ($slot) {
-                return [
-                    'id' => $slot->id,
-                    'title' => $slot->start_time->format('H:i') . ' - ' . $slot->end_time->format('H:i'),
-                    'start' => $slot->start_time->toIso8601String(),
-                    'end' => $slot->end_time->toIso8601String(),
-                    'description' => $slot->description,
-                ];
-            });
+        $appointment = Appointment::where('tracking_token', $token)->firstOrFail();
 
-        return response()->json($slots);
+        return view('frontend.appointment-status-detail', [
+            'appointment' => $appointment,
+            'seoTitle' => 'Détail du rendez-vous - Au-delà des faits',
+            'seoDescription' => 'Consultez les détails de votre rendez-vous.',
+        ]);
     }
 
     private function makeTrackingToken(): string
     {
         do {
-            $token = 'ADF-'.now()->format('Y').'-'.Str::upper(Str::random(10));
+            $token = Str::random(64);
         } while (Appointment::where('tracking_token', $token)->exists());
 
         return $token;
