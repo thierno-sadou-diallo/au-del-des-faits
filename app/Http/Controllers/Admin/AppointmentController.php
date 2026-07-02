@@ -54,7 +54,7 @@ class AppointmentController extends Controller
 
         $appointment->update($validated);
 
-        if ($validated['status'] === 'cancelled' && $appointment->availabilitySlot) {
+        if ($validated['status'] === 'cancelled' && $this->shouldReleaseSlot($appointment)) {
             $appointment->availabilitySlot->decrement('current_appointments');
             $appointment->update(['availability_slot_id' => null]);
         }
@@ -91,7 +91,7 @@ class AppointmentController extends Controller
                     return $appointment;
                 }
 
-                if ($appointment->availabilitySlot) {
+                if ($this->shouldReleaseSlot($appointment)) {
                     $appointment->availabilitySlot->decrement('current_appointments');
                 }
 
@@ -120,12 +120,19 @@ class AppointmentController extends Controller
     public function destroy(Appointment $appointment)
     {
         // Décrémenter le nombre de rendez-vous du créneau
-        if ($appointment->availabilitySlot) {
+        if ($this->shouldReleaseSlot($appointment)) {
             $appointment->availabilitySlot->decrement('current_appointments');
         }
 
         $appointment->delete();
 
         return back()->with('status', 'Rendez-vous supprimé avec succès.');
+    }
+
+    private function shouldReleaseSlot(Appointment $appointment): bool
+    {
+        return $appointment->availabilitySlot
+            && $appointment->availabilitySlot->slot_type === 'available'
+            && $appointment->availabilitySlot->current_appointments > 0;
     }
 }

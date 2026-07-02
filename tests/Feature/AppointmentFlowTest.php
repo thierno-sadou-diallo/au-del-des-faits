@@ -32,16 +32,8 @@ class AppointmentFlowTest extends TestCase
 
     public function test_visitor_must_choose_admin_date_when_one_exists(): void
     {
-        $adminDate = now()->addDays(3);
+        $slot = $this->availableSlot(now()->addDays(3));
         $requestedDate = now()->addDays(7)->toDateString();
-
-        AvailabilitySlot::create([
-            'available_date' => $adminDate->toDateString(),
-            'slot_type' => 'available',
-            'start_time' => $adminDate->copy()->startOfDay(),
-            'end_time' => $adminDate->copy()->endOfDay(),
-            'is_available' => true,
-        ]);
 
         $this->from(route('appointment'))->post(route('appointment.store'), $this->payload([
             'appointment_type' => 'request_day',
@@ -49,26 +41,18 @@ class AppointmentFlowTest extends TestCase
         ]))->assertRedirect(route('appointment'));
 
         $this->assertDatabaseCount('appointments', 0);
+        $this->assertSame(0, $slot->fresh()->current_appointments);
     }
 
     public function test_admin_active_date_is_confirmed_immediately(): void
     {
         $date = now()->addDays(4);
-        $slot = AvailabilitySlot::create([
-            'available_date' => $date->toDateString(),
-            'slot_type' => 'available',
-            'start_time' => $date->copy()->startOfDay(),
-            'end_time' => $date->copy()->endOfDay(),
-            'is_available' => true,
-        ]);
-
-        $this->assertTrue(
-            AvailabilitySlot::availableDays()->whereDate('available_date', $date->toDateString())->exists()
-        );
+        $slot = $this->availableSlot($date, maxAppointments: 2);
 
         $this->post(route('appointment.store'), $this->payload([
             'appointment_type' => 'available_day',
             'appointment_date' => $date->toDateString(),
+            'availability_slot_id' => $slot->id,
         ]))->assertSessionHasNoErrors()
             ->assertRedirect(route('appointment.thankyou'));
 
@@ -77,6 +61,41 @@ class AppointmentFlowTest extends TestCase
         $this->assertSame($slot->id, $appointment->availability_slot_id);
         $this->assertSame('confirmed', $appointment->status);
         $this->assertTrue($appointment->is_approved);
+        $this->assertSame(1, $slot->fresh()->current_appointments);
+    }
+
+    public function test_admin_capacity_cannot_be_exceeded(): void
+    {
+        $date = now()->addDays(6);
+        $slot = $this->availableSlot($date, maxAppointments: 1, currentAppointments: 1);
+
+        $this->from(route('appointment'))->post(route('appointment.store'), $this->payload([
+            'appointment_type' => 'available_day',
+            'appointment_date' => $date->toDateString(),
+            'availability_slot_id' => $slot->id,
+        ]))->assertRedirect(route('appointment'));
+
+        $this->assertDatabaseCount('appointments', 0);
+        $this->assertSame(1, $slot->fresh()->current_appointments);
+    }
+
+    public function test_visitor_can_request_a_date_when_all_admin_slots_are_full(): void
+    {
+        $adminDate = now()->addDays(2);
+        $requestedDate = now()->addDays(8)->toDateString();
+
+        $this->availableSlot($adminDate, maxAppointments: 1, currentAppointments: 1);
+
+        $this->post(route('appointment.store'), $this->payload([
+            'appointment_type' => 'request_day',
+            'appointment_date' => $requestedDate,
+        ]))->assertRedirect(route('appointment.thankyou'));
+
+        $appointment = Appointment::first();
+
+        $this->assertSame($requestedDate, $appointment->appointment_date->toDateString());
+        $this->assertSame('pending', $appointment->status);
+        $this->assertFalse($appointment->is_approved);
     }
 
     private function payload(array $overrides = []): array
@@ -91,5 +110,18 @@ class AppointmentFlowTest extends TestCase
             'subject' => 'Entretien',
             'message' => 'Je souhaite prendre rendez-vous pour discuter du projet.',
         ], $overrides);
+    }
+
+    private function availableSlot(Carbon $date, int $maxAppointments = 1, int $currentAppointments = 0): AvailabilitySlot
+    {
+        return AvailabilitySlot::create([
+            'available_date' => $date->toDateString(),
+            'slot_type' => 'available',
+            'start_time' => $date->copy()->startOfDay(),
+            'end_time' => $date->copy()->endOfDay(),
+            'is_available' => true,
+            'max_appointments' => $maxAppointments,
+            'current_appointments' => $currentAppointments,
+        ]);
     }
 }

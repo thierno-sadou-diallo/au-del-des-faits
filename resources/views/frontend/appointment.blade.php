@@ -127,6 +127,7 @@
                         <!-- Date sélectionnée -->
                         <input type="hidden" id="appointment_type" name="appointment_type" value="">
                         <input type="hidden" id="appointment_date" name="appointment_date" value="">
+                        <input type="hidden" id="availability_slot_id" name="availability_slot_id" value="">
 
                         <div id="selected-date-info" class="col-12 d-none">
                             <div class="alert alert-info alert-sm">
@@ -240,9 +241,18 @@
         font-size: 0.8rem;
         min-height: 48px;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         font-weight: 500;
+    }
+
+    .calendar-day-cell small {
+        display: block;
+        font-size: 0.62rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-top: 2px;
     }
 
     .calendar-day-cell:hover:not(.other-month):not(.past):not(.unavailable) {
@@ -381,6 +391,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentMonth = {{ $month }};
     let currentYear = {{ $year }};
     const availableDates = new Set(@json($availableDates));
+    const availableSlotMap = @json($availableSlotMap);
     const hasAdminAvailableDates = @json($hasAdminAvailableDates);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -416,6 +427,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const dateStr = formatDate(date);
             const isAvailable = isCurrentMonth && availableDates.has(dateStr);
             const canRequestDate = isCurrentMonth && !isPast && !hasAdminAvailableDates;
+            const dateSlots = availableSlotMap[dateStr] || [];
+            const firstSlot = dateSlots[0] || null;
+            const remainingPlaces = dateSlots.reduce((total, slot) => total + slot.remaining, 0);
 
             if (isAvailable && isCurrentMonth) {
                 hasAvailableDates = true;
@@ -430,8 +444,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const appointmentType = isAvailable ? 'available_day' : (canRequestDate ? 'request_day' : '');
 
-            calendarDays += `<div class="${classes}" data-date="${dateStr}" data-type="${appointmentType}" data-day="${dayNumber}">
-                ${dayNumber}
+            calendarDays += `<div class="${classes}" data-date="${dateStr}" data-type="${appointmentType}" data-slot-id="${firstSlot ? firstSlot.id : ''}" data-remaining="${remainingPlaces}" data-day="${dayNumber}">
+                <span>${dayNumber}</span>
+                ${isAvailable ? `<small>${remainingPlaces} place${remainingPlaces > 1 ? 's' : ''}</small>` : ''}
             </div>`;
             
             date.setDate(date.getDate() + 1);
@@ -468,6 +483,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function selectDate(e) {
         const date = e.currentTarget.dataset.date;
         const appointmentType = e.currentTarget.dataset.type;
+        const slotId = e.currentTarget.dataset.slotId || '';
+        const remaining = e.currentTarget.dataset.remaining || '';
         
         document.querySelectorAll('.calendar-day-cell').forEach(cell => {
             cell.classList.remove('selected');
@@ -477,10 +494,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('appointment_date').value = date;
         document.getElementById('appointment_type').value = appointmentType;
+        document.getElementById('availability_slot_id').value = slotId;
         document.getElementById('selected-date-display').textContent = 
             new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', 
                 {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}) +
-            (appointmentType === 'request_day' ? ' - date a approuver' : ' - date active');
+            (appointmentType === 'request_day' ? ' - date a approuver' : ` - date active (${remaining} place${remaining === '1' ? '' : 's'} restante${remaining === '1' ? '' : 's'})`);
         
         document.getElementById('selected-date-info').classList.remove('d-none');
         document.getElementById('appointment-submit').disabled = false;
