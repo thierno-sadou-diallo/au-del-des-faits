@@ -182,5 +182,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
     Route::delete('/newsletter-subscribers/{subscriber}', [NewsletterSubscriberController::class, 'destroy'])->name('newsletter-subscribers.destroy');
     Route::post('/newsletter-subscribers/destroy-multiple', [NewsletterSubscriberController::class, 'destroyMultiple'])->name('newsletter-subscribers.destroy-multiple');
     Route::get('/newsletter-subscribers/export', [NewsletterSubscriberController::class, 'export'])->name('newsletter-subscribers.export');
+});
 
 require __DIR__.'/auth.php';
