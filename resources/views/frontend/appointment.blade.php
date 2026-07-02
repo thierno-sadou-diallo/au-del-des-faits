@@ -80,6 +80,12 @@
                             <span class="legend-color available"></span>
                             <small>Disponible (approuvé automatiquement)</small>
                         </div>
+                        @unless($hasAdminAvailableDates)
+                            <div class="legend-item">
+                                <span class="legend-color requested"></span>
+                                <small>Date proposée (validation admin)</small>
+                            </div>
+                        @endunless
                     </div>
                 </div>
 
@@ -276,6 +282,19 @@
         box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
     }
 
+    .calendar-day-cell.requested {
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+        color: #92400e;
+    }
+
+    .calendar-day-cell.requested.selected {
+        background: #f59e0b;
+        color: white;
+        border-color: #f59e0b;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    }
+
     .date-legend {
         display: flex;
         gap: 12px;
@@ -304,6 +323,11 @@
     .legend-color.available {
         background: rgba(40, 167, 69, 0.1);
         border-color: #28a745;
+    }
+
+    .legend-color.requested {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: #f59e0b;
     }
 
     .appointment-note {
@@ -356,7 +380,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     let currentMonth = {{ $month }};
     let currentYear = {{ $year }};
-    const availableDays = {!! json_encode($availableDays) !!};
+    const availableDates = new Set(@json($availableDates));
+    const hasAdminAvailableDates = @json($hasAdminAvailableDates);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    function formatDate(date) {
+        return date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0');
+    }
     
     function generateCalendar() {
         const firstDay = new Date(currentYear, currentMonth - 1, 1);
@@ -375,13 +408,14 @@ document.addEventListener('DOMContentLoaded', function() {
         date.setDate(date.getDate() - startingDayOfWeek);
 
         for (let i = 0; i < 42; i++) {
+            const cellDate = new Date(date);
+            cellDate.setHours(0, 0, 0, 0);
             const isCurrentMonth = date.getMonth() === currentMonth - 1;
-            const isPast = date < new Date();
+            const isPast = cellDate < today;
             const dayNumber = date.getDate();
-            const isAvailable = isCurrentMonth && availableDays.includes(dayNumber);
-            const dateStr = date.getFullYear() + '-' + 
-                          String(date.getMonth() + 1).padStart(2, '0') + '-' + 
-                          String(date.getDate()).padStart(2, '0');
+            const dateStr = formatDate(date);
+            const isAvailable = isCurrentMonth && availableDates.has(dateStr);
+            const canRequestDate = isCurrentMonth && !isPast && !hasAdminAvailableDates;
 
             if (isAvailable && isCurrentMonth) {
                 hasAvailableDates = true;
@@ -391,9 +425,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isCurrentMonth) classes += ' other-month';
             if (isPast && isCurrentMonth) classes += ' past';
             if (isAvailable && isCurrentMonth) classes += ' available';
-            if (!isAvailable && isCurrentMonth && !isPast) classes += ' unavailable';
+            if (canRequestDate && !isAvailable) classes += ' requested';
+            if (!isAvailable && isCurrentMonth && !isPast && !canRequestDate) classes += ' unavailable';
 
-            calendarDays += `<div class="${classes}" data-date="${dateStr}" data-day="${dayNumber}">
+            const appointmentType = isAvailable ? 'available_day' : (canRequestDate ? 'request_day' : '');
+
+            calendarDays += `<div class="${classes}" data-date="${dateStr}" data-type="${appointmentType}" data-day="${dayNumber}">
                 ${dayNumber}
             </div>`;
             
@@ -411,7 +448,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const requestOption = document.createElement('div');
                 requestOption.id = 'request-date-option';
                 requestOption.className = 'alert alert-warning mt-2';
-                requestOption.innerHTML = '<i class="fas fa-lightbulb me-2"></i><strong>Astuce:</strong> Vous pouvez proposer une date spécifique en remplissant le formulaire ci-dessous.';
+                requestOption.innerHTML = hasAdminAvailableDates
+                    ? '<i class="fas fa-calendar-days me-2"></i>Consultez les autres mois pour trouver une date active.'
+                    : '<i class="fas fa-lightbulb me-2"></i><strong>Astuce:</strong> Cliquez sur une date future pour proposer un rendez-vous a approuver.';
                 noAvailMsg.parentElement.insertBefore(requestOption, noAvailMsg.nextElementSibling);
             }
         } else {
@@ -421,25 +460,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Ajouter les event listeners UNIQUEMENT aux dates disponibles
-        document.querySelectorAll('.calendar-day-cell.available').forEach(cell => {
+        document.querySelectorAll('.calendar-day-cell.available, .calendar-day-cell.requested').forEach(cell => {
             cell.addEventListener('click', selectDate);
         });
     }
 
     function selectDate(e) {
-        const date = e.target.dataset.date;
+        const date = e.currentTarget.dataset.date;
+        const appointmentType = e.currentTarget.dataset.type;
         
         document.querySelectorAll('.calendar-day-cell').forEach(cell => {
             cell.classList.remove('selected');
         });
         
-        e.target.classList.add('selected');
+        e.currentTarget.classList.add('selected');
         
         document.getElementById('appointment_date').value = date;
-        document.getElementById('appointment_type').value = 'available_day';
+        document.getElementById('appointment_type').value = appointmentType;
         document.getElementById('selected-date-display').textContent = 
             new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', 
-                {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+                {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'}) +
+            (appointmentType === 'request_day' ? ' - date a approuver' : ' - date active');
         
         document.getElementById('selected-date-info').classList.remove('d-none');
         document.getElementById('appointment-submit').disabled = false;

@@ -84,9 +84,14 @@ class AvailabilitySlotController extends Controller
             $message = 'Jour supprimé du calendrier.';
         } else {
             // Ajouter le jour comme disponible
+            $availableDate = Carbon::parse($date);
+
             AvailabilitySlot::create([
                 'available_date' => $date,
                 'slot_type' => 'available',
+                'start_time' => $availableDate->copy()->startOfDay(),
+                'end_time' => $availableDate->copy()->endOfDay(),
+                'is_available' => true,
             ]);
             $message = 'Jour ajouté au calendrier.';
         }
@@ -112,7 +117,10 @@ class AvailabilitySlotController extends Controller
 
     public function approveRequest(Appointment $appointment)
     {
-        $appointment->update(['is_approved' => true]);
+        $appointment->update([
+            'is_approved' => true,
+            'status' => 'confirmed',
+        ]);
 
         return back()->with('status', 'Demande approuvée. Le rendez-vous est confirmé.');
     }

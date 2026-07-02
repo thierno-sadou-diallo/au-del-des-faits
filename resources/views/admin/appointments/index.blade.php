@@ -41,9 +41,15 @@
                                     <a href="mailto:{{ $appointment->email }}" class="mt-1 block text-xs font-semibold text-teal-700 hover:text-teal-900">{{ $appointment->email }}</a>
                                 </td>
                                 <td class="px-5 py-4 text-slate-700">
-                                    @if ($appointment->availabilitySlot)
+                                    @if ($appointment->availabilitySlot?->slot_type === 'request')
+                                        <p class="font-semibold">{{ $appointment->appointment_date?->format('d/m/Y') }}</p>
+                                        <p class="mt-1 text-xs text-amber-700">Date proposee par le visiteur</p>
+                                    @elseif ($appointment->availabilitySlot)
                                         <p class="font-semibold">{{ $appointment->availabilitySlot->start_time->format('d/m/Y H:i') }}</p>
                                         <p class="mt-1 text-xs text-slate-500">Fin à {{ $appointment->availabilitySlot->end_time->format('H:i') }}</p>
+                                    @elseif ($appointment->appointment_date)
+                                        <p class="font-semibold">{{ $appointment->appointment_date->format('d/m/Y') }}</p>
+                                        <p class="mt-1 text-xs text-amber-700">Date proposee</p>
                                     @else
                                         <span class="text-slate-400">Non attribué</span>
                                     @endif

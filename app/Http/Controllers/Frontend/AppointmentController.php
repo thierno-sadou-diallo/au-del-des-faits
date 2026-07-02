@@ -22,12 +22,20 @@ class AppointmentController extends Controller
         $currentDate = Carbon::createFromDate($year, $month, 1);
 
         // Récupérer les jours disponibles du mois
-        $availableDays = AvailabilitySlot::availableDays()
-            ->whereYear('available_date', $year)
-            ->whereMonth('available_date', $month)
+        $availableDates = AvailabilitySlot::availableDays()
+            ->orderBy('available_date')
             ->pluck('available_date')
-            ->map(fn($date) => $date->day)
+            ->map(fn ($date) => Carbon::parse($date)->toDateString())
+            ->values();
+
+        $availableDays = $availableDates
+            ->map(fn ($date) => Carbon::parse($date))
+            ->filter(fn ($date) => $date->year === (int) $year && $date->month === (int) $month)
+            ->map(fn ($date) => $date->day)
+            ->values()
             ->toArray();
+
+        $hasAdminAvailableDates = $availableDates->isNotEmpty();
 
         // Récupérer aussi les anciens créneaux horaires si existants
         $slots = AvailabilitySlot::where('is_available', true)
@@ -40,10 +48,33 @@ class AppointmentController extends Controller
             'slots' => $slots,
             'currentDate' => $currentDate,
             'availableDays' => $availableDays,
+            'availableDates' => $availableDates,
+            'hasAdminAvailableDates' => $hasAdminAvailableDates,
             'month' => $month,
             'year' => $year,
             'seoTitle' => 'Rendez-vous - Au-delà des faits',
             'seoDescription' => 'Prenez rendez-vous avec Halimatou Keita pour discuter de votre projet.',
+        ]);
+    }
+
+    public function getSlots(Request $request)
+    {
+        $validated = $request->validate([
+            'month' => 'required|integer|min:1|max:12',
+            'year' => 'required|integer|min:'.now()->year.'|max:'.now()->addYears(3)->year,
+        ]);
+
+        $availableDates = AvailabilitySlot::availableDays()
+            ->whereYear('available_date', $validated['year'])
+            ->whereMonth('available_date', $validated['month'])
+            ->orderBy('available_date')
+            ->pluck('available_date')
+            ->map(fn ($date) => Carbon::parse($date)->toDateString())
+            ->values();
+
+        return response()->json([
+            'available_dates' => $availableDates,
+            'has_admin_available_dates' => AvailabilitySlot::availableDays()->exists(),
         ]);
     }
 
@@ -62,20 +93,44 @@ class AppointmentController extends Controller
         ]);
 
         // Si c'est un créneau disponible, vérifier qu'il existe
+        $hasAdminAvailableDates = AvailabilitySlot::availableDays()->exists();
+
+        if ($validated['appointment_type'] === 'request_day' && $hasAdminAvailableDates) {
+            return back()
+                ->with('error', 'Veuillez choisir une date disponible dans le calendrier. La proposition de date est ouverte uniquement quand aucune date admin n\'est active.')
+                ->withInput();
+        }
+
+        $availabilitySlot = null;
+
         if ($validated['appointment_type'] === 'available_day') {
             $availableDay = AvailabilitySlot::availableDays()
-                ->where('available_date', $validated['appointment_date'])
+                ->whereDate('available_date', $validated['appointment_date'])
                 ->first();
 
             if (!$availableDay) {
                 return back()->with('error', 'Ce jour n\'est pas disponible.')->withInput();
             }
+
+            $availabilitySlot = $availableDay;
         }
 
         try {
+            if ($validated['appointment_type'] === 'request_day') {
+                $requestedDate = Carbon::createFromFormat('Y-m-d', $validated['appointment_date']);
+
+                $availabilitySlot = AvailabilitySlot::create([
+                    'available_date' => $requestedDate->toDateString(),
+                    'slot_type' => 'request',
+                    'start_time' => $requestedDate->copy()->startOfDay(),
+                    'end_time' => $requestedDate->copy()->endOfDay(),
+                    'is_available' => false,
+                ]);
+            }
+
             $appointment = Appointment::create([
                 'appointment_date' => $validated['appointment_date'],
-                'availability_slot_id' => $validated['availability_slot_id'],
+                'availability_slot_id' => $availabilitySlot?->id,
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
@@ -83,10 +138,16 @@ class AppointmentController extends Controller
                 'subject' => $validated['subject'],
                 'message' => $validated['message'],
                 'tracking_token' => Str::random(64),
-                'status' => 'pending',
+                'status' => $validated['appointment_type'] === 'available_day' ? 'confirmed' : 'pending',
                 'is_approved' => $validated['appointment_type'] === 'available_day', // Auto-approuvé si jour disponible
             ]);
         } catch (\Exception $e) {
+            report($e);
+
+            if (app()->environment('testing')) {
+                throw $e;
+            }
+
             return back()->with('error', 'Une erreur s\'est produite lors de la création de votre rendez-vous.')->withInput();
         }
 

@@ -23,10 +23,12 @@
                         <p class="mb-2"><strong>Nom :</strong> {{ $appointment->name }}</p>
                         <p class="mb-2"><strong>Email :</strong> {{ $appointment->email }}</p>
                         <p class="mb-2"><strong>Objet :</strong> {{ $appointment->subject }}</p>
-                        <p class="mb-0"><strong>Creneau demande :</strong>
-                            {{ $appointment->availabilitySlot?->start_time->format('d/m/Y H:i') ?? 'A definir' }}
-                            @if($appointment->availabilitySlot)
-                                - {{ $appointment->availabilitySlot->end_time->format('H:i') }}
+                        <p class="mb-0"><strong>Date demandee :</strong>
+                            {{ $appointment->appointment_date?->format('d/m/Y') ?? 'A definir' }}
+                            @if($appointment->is_approved)
+                                <span class="badge bg-success ms-2">Confirmee</span>
+                            @else
+                                <span class="badge bg-warning text-dark ms-2">En attente</span>
                             @endif
                         </p>
                     </div>
