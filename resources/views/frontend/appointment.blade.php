@@ -1,35 +1,35 @@
 @extends('frontend.layout')
 
 @section('content')
-<section class="appointment-hero page-hero p-4 p-lg-5 mb-5 african-decor">
-    <div class="row align-items-end g-4">
+<section class="appointment-hero page-hero p-3 p-lg-4 mb-4 african-decor">
+    <div class="row align-items-end g-3">
         <div class="col-lg-8">
-            <span class="badge mb-3">Rendez-vous</span>
-            <h1 class="display-3 fw-bold mb-3"><span class="gradient-text">Demander un rendez-vous</span></h1>
-            <p class="lead mb-4">Sélectionnez une date disponible ou demandez un jour spécifique, présentez votre besoin, puis suivez l'évolution de votre demande avec une référence privée.</p>
+            <span class="badge mb-2" style="font-size: 0.8rem;">Rendez-vous</span>
+            <h1 class="display-4 fw-bold mb-2"><span class="gradient-text">Demander un rendez-vous</span></h1>
+            <p class="lead mb-3" style="font-size: 1rem;">Sélectionnez une date disponible, présentez votre besoin, puis suivez votre demande avec une référence privée.</p>
             <div class="appointment-hero-actions">
-                <a href="#appointment-form" class="btn btn-primary btn-lg">
-                    <i class="fas fa-calendar-check me-2"></i>Choisir une date
+                <a href="#appointment-form" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                    <i class="fas fa-calendar-check me-1"></i>Choisir une date
                 </a>
-                <a href="{{ route('appointment.status') }}" class="btn btn-outline-primary btn-lg">
-                    <i class="fas fa-list-check me-2"></i>Suivre ma demande
+                <a href="{{ route('appointment.status') }}" class="btn btn-outline-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                    <i class="fas fa-list-check me-1"></i>Suivre ma demande
                 </a>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="appointment-signal">
-                <span class="section-kicker">Processus</span>
-                <div class="signal-row">
-                    <strong>1</strong>
-                    <span>Demande reçue</span>
+                <span class="section-kicker" style="font-size: 0.8rem;">Processus</span>
+                <div class="signal-row" style="gap: 0.8rem; padding-top: 0.8rem; margin-top: 0.8rem;">
+                    <strong style="font-size: 1.4rem;">1</strong>
+                    <span style="font-size: 0.9rem;">Demande reçue</span>
                 </div>
-                <div class="signal-row">
-                    <strong>2</strong>
-                    <span>Validation admin</span>
+                <div class="signal-row" style="gap: 0.8rem; padding-top: 0.8rem; margin-top: 0.8rem;">
+                    <strong style="font-size: 1.4rem;">2</strong>
+                    <span style="font-size: 0.9rem;">Validation admin</span>
                 </div>
-                <div class="signal-row">
-                    <strong>3</strong>
-                    <span>Confirmation par email</span>
+                <div class="signal-row" style="gap: 0.8rem; padding-top: 0.8rem; margin-top: 0.8rem;">
+                    <strong style="font-size: 1.4rem;">3</strong>
+                    <span style="font-size: 0.9rem;">Confirmation email</span>
                 </div>
             </div>
         </div>
@@ -39,24 +39,30 @@
 <section class="mb-5" id="appointment-form">
     <div class="row g-4">
         <div class="col-lg-5">
-            <div class="appointment-profile art-card h-100 p-4 p-lg-5">
+            <div class="appointment-profile art-card h-100 p-3 p-lg-4">
                 <span class="section-kicker">Sélectionner une date</span>
-                <h2 class="h3 fw-bold mt-3 mb-4"><span class="gradient-text">Dates disponibles ou à demander</span></h2>
+                <h2 class="h5 fw-bold mt-2 mb-3"><span class="gradient-text">Dates disponibles</span></h2>
 
                 <!-- Calendrier pour sélectionner une date -->
-                <div class="calendar-selector mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <button class="btn btn-sm btn-outline-primary" id="prev-month" type="button">
+                <div class="calendar-selector">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <button class="btn btn-sm btn-outline-primary" id="prev-month" type="button" style="padding: 0.35rem 0.55rem; font-size: 0.8rem;">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <h5 id="month-display" class="mb-0">{{ $currentDate->locale('fr')->monthName }} {{ $currentDate->year }}</h5>
-                        <button class="btn btn-sm btn-outline-primary" id="next-month" type="button">
+                        <h6 id="month-display" class="mb-0" style="font-size: 0.95rem;">{{ $currentDate->locale('fr')->monthName }} {{ $currentDate->year }}</h6>
+                        <button class="btn btn-sm btn-outline-primary" id="next-month" type="button" style="padding: 0.35rem 0.55rem; font-size: 0.8rem;">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
 
+                    <!-- Message si pas de dates disponibles -->
+                    <div id="no-available-dates" class="alert alert-info alert-sm mb-3" style="display: none;">
+                        <i class="fas fa-calendar-times me-2"></i>
+                        <small>Aucune date disponible ce mois-ci. Vous pouvez proposer une date spécifique ci-dessous.</small>
+                    </div>
+
                     <!-- Grille calendaire -->
-                    <div class="calendar-grid-user mb-3">
+                    <div class="calendar-grid-user mb-2">
                         <div class="calendar-day-header">Lun</div>
                         <div class="calendar-day-header">Mar</div>
                         <div class="calendar-day-header">Mer</div>
@@ -68,39 +74,35 @@
                         <div id="calendar-days"></div>
                     </div>
 
-                    <!-- Informations sur les dates -->
+                    <!-- Légende simplifiée -->
                     <div class="date-legend">
                         <div class="legend-item">
                             <span class="legend-color available"></span>
-                            <span>Date disponible (auto-approuvée)</span>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-color request"></span>
-                            <span>Demande à approuver</span>
+                            <small>Disponible (approuvé automatiquement)</small>
                         </div>
                     </div>
                 </div>
 
-                <div class="appointment-note mt-4">
+                <div class="appointment-note mt-3">
                     <i class="fas fa-shield-halved"></i>
-                    <p class="mb-0">Après envoi, une référence de suivi vous permet de consulter l'état de la demande sans créer de compte.</p>
+                    <p class="mb-0"><small>Une référence de suivi vous permet de consulter l'état sans créer de compte.</small></p>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-7">
             <div class="appointment-form-card card h-100">
-                <div class="card-body p-4 p-lg-5">
+                <div class="card-body p-3 p-lg-4">
                     <span class="section-kicker">Formulaire</span>
-                    <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
-                        <h2 class="h3 fw-bold mt-3 mb-0">Vos informations</h2>
-                        <a href="{{ route('appointment.status') }}" class="status-link">
-                            <i class="fas fa-magnifying-glass me-2"></i>Suivre une demande
+                    <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-2 mb-3">
+                        <h2 class="h5 fw-bold mt-2 mb-0">Vos informations</h2>
+                        <a href="{{ route('appointment.status') }}" class="status-link" style="font-size: 0.8rem; padding: 0.4rem 0.7rem;">
+                            <i class="fas fa-magnifying-glass me-1"></i>Suivre
                         </a>
                     </div>
 
                     @if ($errors->any())
-                        <div class="alert alert-danger" role="alert">
+                        <div class="alert alert-danger alert-sm" role="alert">
                             <ul class="mb-0">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
@@ -110,10 +112,10 @@
                     @endif
 
                     @if (session('error'))
-                        <div class="alert alert-danger">{{ session('error') }}</div>
+                        <div class="alert alert-danger alert-sm">{{ session('error') }}</div>
                     @endif
 
-                    <form method="POST" action="{{ route('appointment.store') }}" class="row g-3" id="appointmentForm">
+                    <form method="POST" action="{{ route('appointment.store') }}" class="row g-2" id="appointmentForm">
                         @csrf
 
                         <!-- Date sélectionnée -->
@@ -121,43 +123,43 @@
                         <input type="hidden" id="appointment_date" name="appointment_date" value="">
 
                         <div id="selected-date-info" class="col-12 d-none">
-                            <div class="alert alert-info">
-                                <i class="fas fa-calendar me-2"></i>
-                                <strong>Date sélectionnée:</strong> <span id="selected-date-display"></span>
+                            <div class="alert alert-info alert-sm">
+                                <i class="fas fa-calendar me-1"></i>
+                                <strong>Date:</strong> <span id="selected-date-display"></span>
                             </div>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="name" class="form-label fw-bold">Nom complet *</label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" required value="{{ old('name') }}">
+                            <label for="name" class="form-label fw-bold" style="font-size: 0.9rem;">Nom *</label>
+                            <input type="text" class="form-control form-control-sm @error('name') is-invalid @enderror" id="name" name="name" required value="{{ old('name') }}">
                             @error('name')<span class="invalid-feedback">{{ $message }}</span>@enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="email" class="form-label fw-bold">Email *</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" required value="{{ old('email') }}">
+                            <label for="email" class="form-label fw-bold" style="font-size: 0.9rem;">Email *</label>
+                            <input type="email" class="form-control form-control-sm @error('email') is-invalid @enderror" id="email" name="email" required value="{{ old('email') }}">
                             @error('email')<span class="invalid-feedback">{{ $message }}</span>@enderror
                         </div>
                         <div class="col-md-6">
-                            <label for="phone" class="form-label fw-bold">Téléphone</label>
-                            <input type="tel" class="form-control" id="phone" name="phone" value="{{ old('phone') }}">
+                            <label for="phone" class="form-label fw-bold" style="font-size: 0.9rem;">Téléphone</label>
+                            <input type="tel" class="form-control form-control-sm" id="phone" name="phone" value="{{ old('phone') }}">
                         </div>
                         <div class="col-md-6">
-                            <label for="organization" class="form-label fw-bold">Organisation</label>
-                            <input type="text" class="form-control" id="organization" name="organization" value="{{ old('organization') }}">
+                            <label for="organization" class="form-label fw-bold" style="font-size: 0.9rem;">Organisation</label>
+                            <input type="text" class="form-control form-control-sm" id="organization" name="organization" value="{{ old('organization') }}">
                         </div>
                         <div class="col-12">
-                            <label for="subject" class="form-label fw-bold">Objet *</label>
-                            <input type="text" class="form-control @error('subject') is-invalid @enderror" id="subject" name="subject" required value="{{ old('subject') }}" placeholder="Ex: collaboration, intervention media, accompagnement">
+                            <label for="subject" class="form-label fw-bold" style="font-size: 0.9rem;">Objet *</label>
+                            <input type="text" class="form-control form-control-sm @error('subject') is-invalid @enderror" id="subject" name="subject" required value="{{ old('subject') }}" placeholder="Ex: collaboration, accompagnement">
                             @error('subject')<span class="invalid-feedback">{{ $message }}</span>@enderror
                         </div>
                         <div class="col-12">
-                            <label for="message" class="form-label fw-bold">Contexte de la demande *</label>
-                            <textarea class="form-control @error('message') is-invalid @enderror" id="message" name="message" rows="6" required>{{ old('message') }}</textarea>
+                            <label for="message" class="form-label fw-bold" style="font-size: 0.9rem;">Contexte *</label>
+                            <textarea class="form-control form-control-sm @error('message') is-invalid @enderror" id="message" name="message" rows="4" required>{{ old('message') }}</textarea>
                             @error('message')<span class="invalid-feedback">{{ $message }}</span>@enderror
                         </div>
                         <div class="col-12">
-                            <button type="submit" class="btn btn-primary btn-lg w-100" id="appointment-submit" disabled>
-                                <i class="fas fa-paper-plane me-2"></i>Envoyer la demande
+                            <button type="submit" class="btn btn-primary btn-sm w-100" id="appointment-submit" disabled>
+                                <i class="fas fa-paper-plane me-1"></i>Envoyer la demande
                             </button>
                         </div>
                     </form>
@@ -208,39 +210,39 @@
     .calendar-grid-user {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 8px;
-        margin-bottom: 15px;
+        gap: 6px;
     }
 
     .calendar-day-header {
         font-weight: bold;
         text-align: center;
-        padding: 8px;
+        padding: 6px 4px;
         background: #f5f5f5;
         border-radius: 4px;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         grid-column: span 1;
     }
 
     .calendar-day-cell {
         border: 2px solid #ddd;
-        border-radius: 8px;
-        padding: 8px;
+        border-radius: 6px;
+        padding: 4px 2px;
         text-align: center;
         cursor: pointer;
         transition: all 0.2s ease;
         background: white;
-        font-size: 0.9rem;
-        min-height: 60px;
+        font-size: 0.8rem;
+        min-height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-weight: 500;
     }
 
-    .calendar-day-cell:hover:not(.other-month):not(.past) {
+    .calendar-day-cell:hover:not(.other-month):not(.past):not(.unavailable) {
         border-color: #0d6efd;
         box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
-        transform: translateY(-2px);
+        transform: translateY(-1px);
     }
 
     .calendar-day-cell.other-month {
@@ -249,55 +251,54 @@
         cursor: not-allowed;
     }
 
-    .calendar-day-cell.past {
+    .calendar-day-cell.past,
+    .calendar-day-cell.unavailable {
         background: #f5f5f5;
+        color: #bbb;
         cursor: not-allowed;
-        opacity: 0.6;
+        border-color: #ddd;
     }
 
     .calendar-day-cell.available {
         border-color: #28a745;
-        background: rgba(40, 167, 69, 0.05);
+        background: rgba(40, 167, 69, 0.08);
+        color: #155724;
+    }
+
+    .calendar-day-cell.available:hover {
+        background: rgba(40, 167, 69, 0.15);
     }
 
     .calendar-day-cell.available.selected {
         background: #28a745;
         color: white;
         border-color: #28a745;
-    }
-
-    .calendar-day-cell.request {
-        border-color: #ffc107;
-        background: rgba(255, 193, 7, 0.05);
-    }
-
-    .calendar-day-cell.request.selected {
-        background: #ffc107;
-        color: white;
-        border-color: #ffc107;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
     }
 
     .date-legend {
         display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 12px;
+        gap: 12px;
+        padding: 8px;
         background: #f9f9f9;
-        border-radius: 8px;
+        border-radius: 6px;
+        margin-top: 8px;
     }
 
     .legend-item {
         display: flex;
         align-items: center;
-        gap: 10px;
-        font-size: 0.9rem;
+        gap: 6px;
+        font-size: 0.8rem;
+        margin: 0;
     }
 
     .legend-color {
-        width: 20px;
-        height: 20px;
-        border-radius: 4px;
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
         border: 2px solid;
+        flex-shrink: 0;
     }
 
     .legend-color.available {
@@ -305,39 +306,48 @@
         border-color: #28a745;
     }
 
-    .legend-color.request {
-        background: rgba(255, 193, 7, 0.1);
-        border-color: #ffc107;
-    }
-
     .appointment-note {
         align-items: flex-start;
         background: #fff7ed;
         border: 1px solid rgba(245, 158, 11, .25);
-        border-radius: 18px;
+        border-radius: 12px;
         display: flex;
-        gap: .85rem;
-        padding: 1rem;
+        gap: 0.6rem;
+        padding: 0.75rem;
     }
 
-    .appointment-note i { color: #b45309; margin-top: .25rem; }
+    .appointment-note i { color: #b45309; margin-top: .15rem; font-size: 0.9rem; flex-shrink: 0; }
 
     .status-link {
         border: 1px solid rgba(37,99,235,.22);
         border-radius: 999px;
         color: #2563eb;
-        font-size: .88rem;
         font-weight: 900;
-        padding: .55rem .85rem;
         text-decoration: none;
+        white-space: nowrap;
     }
 
     .status-link:hover {
         text-decoration: underline;
     }
 
+    .alert-sm {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .form-control-sm {
+        font-size: 0.9rem;
+        padding: 0.35rem 0.55rem;
+        height: auto;
+    }
+
     @media (max-width: 575.98px) {
         .appointment-hero-actions .btn { width: 100%; }
+        .calendar-grid-user { gap: 4px; }
+        .calendar-day-cell { min-height: 40px; font-size: 0.75rem; }
+        .date-legend { flex-direction: column; gap: 6px; }
     }
 </style>
 
@@ -360,6 +370,7 @@ document.addEventListener('DOMContentLoaded', function() {
             monthNames[currentMonth - 1] + ' ' + currentYear;
 
         let calendarDays = '';
+        let hasAvailableDates = false;
         let date = new Date(currentYear, currentMonth - 1, 1);
         date.setDate(date.getDate() - startingDayOfWeek);
 
@@ -372,11 +383,15 @@ document.addEventListener('DOMContentLoaded', function() {
                           String(date.getMonth() + 1).padStart(2, '0') + '-' + 
                           String(date.getDate()).padStart(2, '0');
 
+            if (isAvailable && isCurrentMonth) {
+                hasAvailableDates = true;
+            }
+
             let classes = 'calendar-day-cell';
             if (!isCurrentMonth) classes += ' other-month';
             if (isPast && isCurrentMonth) classes += ' past';
             if (isAvailable && isCurrentMonth) classes += ' available';
-            if (!isAvailable && isCurrentMonth && !isPast) classes += ' request';
+            if (!isAvailable && isCurrentMonth && !isPast) classes += ' unavailable';
 
             calendarDays += `<div class="${classes}" data-date="${dateStr}" data-day="${dayNumber}">
                 ${dayNumber}
@@ -386,16 +401,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         document.getElementById('calendar-days').innerHTML = calendarDays;
+        
+        // Afficher le message si aucune date disponible
+        const noAvailMsg = document.getElementById('no-available-dates');
+        if (!hasAvailableDates) {
+            noAvailMsg.style.display = 'block';
+            // Ajouter une option pour demander une date
+            if (!document.getElementById('request-date-option')) {
+                const requestOption = document.createElement('div');
+                requestOption.id = 'request-date-option';
+                requestOption.className = 'alert alert-warning mt-2';
+                requestOption.innerHTML = '<i class="fas fa-lightbulb me-2"></i><strong>Astuce:</strong> Vous pouvez proposer une date spécifique en remplissant le formulaire ci-dessous.';
+                noAvailMsg.parentElement.insertBefore(requestOption, noAvailMsg.nextElementSibling);
+            }
+        } else {
+            noAvailMsg.style.display = 'none';
+            const requestOption = document.getElementById('request-date-option');
+            if (requestOption) requestOption.remove();
+        }
 
-        // Ajouter les event listeners
-        document.querySelectorAll('.calendar-day-cell:not(.other-month):not(.past)').forEach(cell => {
+        // Ajouter les event listeners UNIQUEMENT aux dates disponibles
+        document.querySelectorAll('.calendar-day-cell.available').forEach(cell => {
             cell.addEventListener('click', selectDate);
         });
     }
 
     function selectDate(e) {
         const date = e.target.dataset.date;
-        const isAvailable = e.target.classList.contains('available');
         
         document.querySelectorAll('.calendar-day-cell').forEach(cell => {
             cell.classList.remove('selected');
@@ -404,27 +436,13 @@ document.addEventListener('DOMContentLoaded', function() {
         e.target.classList.add('selected');
         
         document.getElementById('appointment_date').value = date;
-        document.getElementById('appointment_type').value = isAvailable ? 'available_day' : 'request_day';
+        document.getElementById('appointment_type').value = 'available_day';
         document.getElementById('selected-date-display').textContent = 
             new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', 
                 {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
         
         document.getElementById('selected-date-info').classList.remove('d-none');
         document.getElementById('appointment-submit').disabled = false;
-
-        if (!isAvailable) {
-            const alert = document.createElement('div');
-            alert.className = 'alert alert-warning mt-2';
-            alert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Cette date nécessitera une approbation de l\'administrateur.';
-            
-            const existingAlert = document.getElementById('selected-date-info').querySelector('.alert-warning');
-            if (existingAlert) existingAlert.remove();
-            
-            document.getElementById('selected-date-info').appendChild(alert);
-        } else {
-            const existingAlert = document.getElementById('selected-date-info').querySelector('.alert-warning');
-            if (existingAlert) existingAlert.remove();
-        }
     }
 
     document.getElementById('prev-month').addEventListener('click', () => {

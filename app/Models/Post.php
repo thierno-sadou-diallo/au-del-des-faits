@@ -77,18 +77,26 @@ class Post extends Model
 
         $path = ltrim($path, '/');
 
+        // Si c'est une URL absolue, la retourner directement
         if (Str::startsWith($path, ['http://', 'https://', '//'])) {
             return $path;
         }
 
+        // Nettoyer le chemin des préfixes storage/ et public/
         if (Str::startsWith($path, 'storage/')) {
             $path = Str::after($path, 'storage/');
         }
-
         if (Str::startsWith($path, 'public/')) {
             $path = Str::after($path, 'public/');
         }
 
-        return url('media-storage/'.$path);
+        // Essayer d'abord le chemin direct via le symlink public/storage
+        $publicStoragePath = 'storage/' . $path;
+        if (file_exists(public_path($publicStoragePath))) {
+            return asset($publicStoragePath);
+        }
+
+        // Sinon, utiliser la route media-storage comme fallback
+        return route('media.storage', ['path' => $path]);
     }
 }

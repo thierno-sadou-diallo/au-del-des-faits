@@ -25,6 +25,9 @@
                     <x-nav-link :href="route('admin.service-reviews.index')" :active="request()->routeIs('admin.service-reviews.*')">
                         Avis
                     </x-nav-link>
+                    <x-nav-link :href="route('admin.newsletter-subscribers.index')" :active="request()->routeIs('admin.newsletter-subscribers.*')">
+                        Abonnés
+                    </x-nav-link>
                     <x-nav-link :href="route('admin.posts.index')" :active="request()->routeIs('admin.posts.*')">
                         Articles
                     </x-nav-link>
@@ -142,6 +145,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.service-reviews.index')" :active="request()->routeIs('admin.service-reviews.*')">
                     Avis
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('admin.newsletter-subscribers.index')" :active="request()->routeIs('admin.newsletter-subscribers.*')">
+                    Abonnés
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.posts.index')" :active="request()->routeIs('admin.posts.*')">
                     Articles

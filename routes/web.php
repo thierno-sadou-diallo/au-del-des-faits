@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CommentModerationController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\NewsletterSubscriberController;
 use App\Http\Controllers\Admin\PortfolioController as AdminPortfolioController;
 use App\Http\Controllers\Admin\PostController;
 use App\Http\Controllers\Admin\AppointmentController as AdminAppointmentController;
@@ -54,15 +55,53 @@ Route::get('/refresh-captcha', fn () => response()->json(['captcha' => captcha_i
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'store'])->name('newsletter.subscribe');
 
 Route::get('/media-storage/{path}', function (string $path) {
-    abort_unless(Storage::disk('public')->exists($path), 404);
-
-    return Storage::disk('public')->response($path);
+    // Nettoyer le chemin
+    $path = trim($path, '/');
+    
+    // Essayer plusieurs emplacements possibles
+    $possiblePaths = [
+        storage_path("app/public/$path"),
+        storage_path("app/public/posts/$path"),
+        storage_path("app/public/portfolio/$path"),
+    ];
+    
+    foreach ($possiblePaths as $fullPath) {
+        if (file_exists($fullPath) && is_file($fullPath)) {
+            return response()->file($fullPath);
+        }
+    }
+    
+    // Fallback: utiliser Storage disk
+    if (Storage::disk('public')->exists($path)) {
+        return Storage::disk('public')->response($path);
+    }
+    
+    abort(404, 'Fichier non trouvé');
 })->where('path', '.*')->name('media.storage');
 
 Route::get('/storage/{path}', function (string $path) {
-    abort_unless(Storage::disk('public')->exists($path), 404);
-
-    return Storage::disk('public')->response($path);
+    // Nettoyer le chemin
+    $path = trim($path, '/');
+    
+    // Essayer plusieurs emplacements possibles
+    $possiblePaths = [
+        storage_path("app/public/$path"),
+        storage_path("app/public/posts/$path"),
+        storage_path("app/public/portfolio/$path"),
+    ];
+    
+    foreach ($possiblePaths as $fullPath) {
+        if (file_exists($fullPath) && is_file($fullPath)) {
+            return response()->file($fullPath);
+        }
+    }
+    
+    // Fallback: utiliser Storage disk
+    if (Storage::disk('public')->exists($path)) {
+        return Storage::disk('public')->response($path);
+    }
+    
+    abort(404, 'Fichier non trouvé');
 })->where('path', '.*')->name('storage.public');
 
 Route::get('/robots.txt', function () {
@@ -117,6 +156,7 @@ Route::middleware('auth')->group(function () {
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/storage-diagnostics', [\App\Http\Controllers\Admin\StorageDiagnosticsController::class, 'index'])->name('storage-diagnostics');
     Route::post('/posts/ai-draft', [PostController::class, 'aiDraft'])->name('posts.ai-draft');
     Route::resource('posts', PostController::class)->except('show');
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
@@ -138,6 +178,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'admin']
     Route::patch('/service-reviews/{serviceReview}/approve', [AdminServiceReviewController::class, 'approve'])->name('service-reviews.approve');
     Route::post('/service-reviews/{serviceReview}/reply', [AdminServiceReviewController::class, 'reply'])->name('service-reviews.reply');
     Route::delete('/service-reviews/{serviceReview}', [AdminServiceReviewController::class, 'destroy'])->name('service-reviews.destroy');
-});
+    Route::get('/newsletter-subscribers', [NewsletterSubscriberController::class, 'index'])->name('newsletter-subscribers.index');
+    Route::delete('/newsletter-subscribers/{subscriber}', [NewsletterSubscriberController::class, 'destroy'])->name('newsletter-subscribers.destroy');
+    Route::post('/newsletter-subscribers/destroy-multiple', [NewsletterSubscriberController::class, 'destroyMultiple'])->name('newsletter-subscribers.destroy-multiple');
+    Route::get('/newsletter-subscribers/export', [NewsletterSubscriberController::class, 'export'])->name('newsletter-subscribers.export');
 
 require __DIR__.'/auth.php';
