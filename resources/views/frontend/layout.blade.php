@@ -990,6 +990,12 @@
             opacity: 1;
             transform: translateY(0);
         }
+        .article-layout,
+        .article-layout[data-reveal],
+        .article-layout [data-reveal] {
+            opacity: 1 !important;
+            transform: none !important;
+        }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: .01ms !important;
@@ -1245,7 +1251,9 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.querySelectorAll('main > .row, main > section, .card').forEach((element) => {
-            element.setAttribute('data-reveal', '');
+            if (!element.closest('.article-layout')) {
+                element.setAttribute('data-reveal', '');
+            }
         });
 
         document.querySelectorAll('.card, .art-card, .page-hero').forEach((element) => {
@@ -1259,16 +1267,20 @@
             section.parentNode.insertBefore(band, section);
         });
 
-        const revealObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-visible');
-                    revealObserver.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.12 });
+        if ('IntersectionObserver' in window) {
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        revealObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12 });
 
-        document.querySelectorAll('[data-reveal]').forEach((element) => revealObserver.observe(element));
+            document.querySelectorAll('[data-reveal]').forEach((element) => revealObserver.observe(element));
+        } else {
+            document.querySelectorAll('[data-reveal]').forEach((element) => element.classList.add('is-visible'));
+        }
 
         function updateReadingProgress() {
             const scrollable = document.documentElement.scrollHeight - window.innerHeight;
@@ -1312,15 +1324,15 @@
             spotlightEmpty.style.display = visibleCount ? 'none' : 'block';
         }
 
-        document.getElementById('open-spotlight').addEventListener('click', openSpotlight);
-        document.getElementById('close-spotlight').addEventListener('click', closeSpotlight);
-        spotlight.addEventListener('click', (event) => {
+        document.getElementById('open-spotlight')?.addEventListener('click', openSpotlight);
+        document.getElementById('close-spotlight')?.addEventListener('click', closeSpotlight);
+        spotlight?.addEventListener('click', (event) => {
             if (event.target === spotlight) {
                 closeSpotlight();
             }
         });
-        spotlightInput.addEventListener('input', (event) => filterSpotlight(event.target.value));
-        spotlightInput.addEventListener('keydown', (event) => {
+        spotlightInput?.addEventListener('input', (event) => filterSpotlight(event.target.value));
+        spotlightInput?.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 const activeItem = spotlightItems.find((item) => item.classList.contains('is-active') && item.style.display !== 'none');
                 if (activeItem) {
@@ -1335,16 +1347,16 @@
                 event.preventDefault();
                 openSpotlight();
             }
-            if (event.key === 'Escape' && spotlight.classList.contains('is-open')) {
+            if (event.key === 'Escape' && spotlight?.classList.contains('is-open')) {
                 closeSpotlight();
             }
         });
 
-        document.getElementById('toggle-reader-focus').addEventListener('click', () => {
+        document.getElementById('toggle-reader-focus')?.addEventListener('click', () => {
             document.body.classList.toggle('reader-focus');
         });
 
-        document.getElementById('scroll-top').addEventListener('click', () => {
+        document.getElementById('scroll-top')?.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 

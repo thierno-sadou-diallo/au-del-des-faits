@@ -34,7 +34,9 @@ class PublicContentRenderingTest extends TestCase
             ->assertSee('Texte publie par admin visible par les visiteurs.', false)
             ->assertSee('Chargement du captcha...')
             ->assertSee('const articleVoiceIntro =', false)
-            ->assertSee("document.querySelector('.article-content')", false);
+            ->assertSee("document.querySelector('.article-content')", false)
+            ->assertSee('.article-layout[data-reveal]', false)
+            ->assertSee("!element.closest('.article-layout')", false);
     }
 
     public function test_media_page_displays_uploaded_images_and_detail_page(): void
