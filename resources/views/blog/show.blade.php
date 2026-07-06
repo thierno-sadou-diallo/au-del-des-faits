@@ -133,7 +133,9 @@
                             <label class="form-label">Message</label>
                             <textarea class="form-control" name="message" rows="5" required></textarea>
                         </div>
-                        <div class="col-md-9" id="captcha-wrapper">{!! captcha_img() !!}</div>
+                        <div class="col-md-9" id="captcha-wrapper">
+                            <span class="text-muted">Chargement du captcha...</span>
+                        </div>
                         <div class="col-md-3 d-grid">
                             <button type="button" class="btn btn-outline-secondary" onclick="refreshCaptcha()">Rafraichir</button>
                         </div>
@@ -224,10 +226,12 @@
         text: @json($shareText),
         url: @json($shareUrl),
     };
-    const articleVoiceText = @json($post->title . '. ' . $post->excerpt . ' ' . strip_tags($post->content));
+    const articleVoiceIntro = @json($post->title . '. ' . $post->excerpt);
     let articleUtterance = null;
 
     function getArticleUtterance() {
+        const content = document.querySelector('.article-content')?.textContent || '';
+        const articleVoiceText = `${articleVoiceIntro} ${content}`;
         const utterance = new SpeechSynthesisUtterance(articleVoiceText.replace(/\s+/g, ' ').trim());
         utterance.lang = 'fr-FR';
         utterance.rate = 0.95;
@@ -301,10 +305,24 @@
     });
 
     async function refreshCaptcha() {
-        const response = await fetch('{{ route('captcha.refresh') }}');
-        const data = await response.json();
-        document.getElementById('captcha-wrapper').innerHTML = data.captcha;
+        const wrapper = document.getElementById('captcha-wrapper');
+        if (!wrapper) {
+            return;
+        }
+
+        try {
+            const response = await fetch('{{ route('captcha.refresh') }}', {
+                headers: { 'Accept': 'application/json' },
+                cache: 'no-store',
+            });
+            const data = await response.json();
+            wrapper.innerHTML = data.captcha || '<span class="text-muted">Captcha indisponible.</span>';
+        } catch (error) {
+            wrapper.innerHTML = '<span class="text-muted">Captcha indisponible. Rechargez la page si besoin.</span>';
+        }
     }
+
+    document.addEventListener('DOMContentLoaded', refreshCaptcha);
 
     async function nativeShareArticle() {
         if (navigator.share) {

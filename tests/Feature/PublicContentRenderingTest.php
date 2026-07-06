@@ -29,8 +29,12 @@ class PublicContentRenderingTest extends TestCase
 
         $this->get(route('blog.show', $post->slug))
             ->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')
             ->assertSee('Article public')
-            ->assertSee('Texte publie par admin visible par les visiteurs.', false);
+            ->assertSee('Texte publie par admin visible par les visiteurs.', false)
+            ->assertSee('Chargement du captcha...')
+            ->assertSee('const articleVoiceIntro =', false)
+            ->assertSee("document.querySelector('.article-content')", false);
     }
 
     public function test_media_page_displays_uploaded_images_and_detail_page(): void

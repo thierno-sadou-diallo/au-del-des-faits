@@ -24,7 +24,11 @@ class OptimizeResponse
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
-        if (! $request->isMethodCacheable() || $request->user() || $request->is('admin/*', 'login', 'register', 'profile*')) {
+        if (
+            ! $request->isMethodCacheable()
+            || $request->user()
+            || $request->is('admin/*', 'login', 'register', 'profile*', 'blog/*', 'medias/*', 'portfolio/*')
+        ) {
             $response->headers->set('Cache-Control', 'no-store, private');
         } elseif ($request->getPathInfo() === '/') {
             $response->headers->set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
