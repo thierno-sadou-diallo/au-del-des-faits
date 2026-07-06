@@ -18,18 +18,18 @@ class OptimizeResponse
         $response = $next($request);
 
         // Set security headers
-        $response->header('X-Content-Type-Options', 'nosniff');
-        $response->header('X-Frame-Options', 'SAMEORIGIN');
-        $response->header('X-XSS-Protection', '1; mode=block');
-        $response->header('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->header('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        $response->headers->set('X-XSS-Protection', '1; mode=block');
+        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->headers->set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
 
         if (! $request->isMethodCacheable() || $request->user() || $request->is('admin/*', 'login', 'register', 'profile*')) {
             $response->headers->set('Cache-Control', 'no-store, private');
         } elseif ($request->getPathInfo() === '/') {
-            $response->header('Cache-Control', 'public, max-age=3600, s-maxage=86400');
+            $response->headers->set('Cache-Control', 'public, max-age=3600, s-maxage=86400');
         } else {
-            $response->header('Cache-Control', 'public, max-age=3600');
+            $response->headers->set('Cache-Control', 'public, max-age=3600');
         }
 
         return $response;

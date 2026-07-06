@@ -62,10 +62,38 @@ class Portfolio extends Model
 
     public function getDescriptionHtmlAttribute(): string
     {
-        return Str::markdown($this->description ?? '', [
+        return $this->renderPublicContent($this->description);
+    }
+
+    private function renderPublicContent(?string $content): string
+    {
+        $content = trim($content ?? '');
+
+        if ($content === '') {
+            return '';
+        }
+
+        if ($this->containsHtml($content)) {
+            $content = preg_replace('/<(script|style)\b[^>]*>.*?<\/\1>/is', '', $content) ?? $content;
+
+            return trim(strip_tags($content, '<p><br><strong><b><em><i><u><ul><ol><li><blockquote><h1><h2><h3><h4><h5><h6><a><img>'));
+        }
+
+        $html = Str::markdown($content, [
             'html_input' => 'strip',
             'allow_unsafe_links' => false,
         ]);
+
+        if (blank(strip_tags($html))) {
+            return nl2br(e(strip_tags($content)));
+        }
+
+        return $html;
+    }
+
+    private function containsHtml(string $content): bool
+    {
+        return $content !== strip_tags($content);
     }
 
     public function category()

@@ -103,7 +103,6 @@ class HomeController extends Controller
         $categoryId = request('category');
         $mediaItems = Portfolio::query()
             ->with('category')
-            ->whereHas('category', fn ($q) => $q->where('type', 'media'))
             ->when($categoryId, fn ($q) => $q->where('category_id', $categoryId))
             ->latest()
             ->paginate(6)

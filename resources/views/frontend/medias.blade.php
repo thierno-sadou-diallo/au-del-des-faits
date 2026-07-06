@@ -62,13 +62,13 @@
                                     <span class="badge bg-secondary">{{ $item->category->name }}</span>
                                 @endif
                             </div>
-                            <h2 class="h5 fw-bold"><a href="{{ route('portfolio.show', $item->slug) }}" class="text-dark text-decoration-none">{{ $item->title }}</a></h2>
+                            <h2 class="h5 fw-bold"><a href="{{ route('medias.show', $item->slug) }}" class="text-dark text-decoration-none">{{ $item->title }}</a></h2>
                             <p class="text-muted">{{ \Illuminate\Support\Str::limit($item->excerpt, 110) }}</p>
                             <div class="mt-auto d-flex flex-wrap gap-2 align-items-center">
                                 @if($item->video_url)
                                     <a href="{{ $item->video_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">Voir la vidéo</a>
                                 @endif
-                                <a href="{{ route('portfolio.show', $item->slug) }}" class="btn btn-sm btn-primary">Découvrir</a>
+                                <a href="{{ route('medias.show', $item->slug) }}" class="btn btn-sm btn-primary">Découvrir</a>
                                 <small class="text-muted">{{ $item->likes ?? 0 }} likes</small>
                             </div>
                         </div>

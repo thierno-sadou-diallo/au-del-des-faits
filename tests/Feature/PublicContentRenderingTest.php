@@ -1,0 +1,71 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Category;
+use App\Models\Portfolio;
+use App\Models\Post;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class PublicContentRenderingTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_published_article_detail_displays_admin_text(): void
+    {
+        $category = Category::create([
+            'name' => 'Analyses',
+            'type' => 'blog',
+        ]);
+
+        $post = Post::create([
+            'title' => 'Article public',
+            'slug' => 'article-public',
+            'content' => '<p>Texte publie par admin visible par les visiteurs.</p>',
+            'status' => 'published',
+            'category_id' => $category->id,
+        ]);
+
+        $this->get(route('blog.show', $post->slug))
+            ->assertOk()
+            ->assertSee('Article public')
+            ->assertSee('Texte publie par admin visible par les visiteurs.', false);
+    }
+
+    public function test_media_page_displays_uploaded_images_and_detail_page(): void
+    {
+        $imageDirectory = storage_path('app/public/portfolio');
+        if (! is_dir($imageDirectory)) {
+            mkdir($imageDirectory, 0777, true);
+        }
+        file_put_contents($imageDirectory.'/media-test.jpg', 'fake image content');
+
+        try {
+            $portfolio = Portfolio::create([
+                'title' => 'Media public',
+                'slug' => 'media-public',
+                'description' => '<p>Description publiee par admin.</p>',
+                'images' => ['portfolio/media-test.jpg'],
+                'technologies' => ['Terrain'],
+            ]);
+            $imageUrl = $portfolio->fresh()->cover_image_url;
+
+            $this->get(route('medias'))
+                ->assertOk()
+                ->assertSee('Media public')
+                ->assertSee(route('medias.show', $portfolio->slug), false)
+                ->assertSee($imageUrl, false);
+
+            $this->get(route('medias.show', $portfolio->slug))
+                ->assertOk()
+                ->assertSee('Description publiee par admin.', false)
+                ->assertSee($imageUrl, false);
+
+            $this->get(route('media.storage', ['path' => 'portfolio/media-test.jpg']))
+                ->assertOk();
+        } finally {
+            @unlink($imageDirectory.'/media-test.jpg');
+        }
+    }
+}

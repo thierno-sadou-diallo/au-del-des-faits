@@ -28,6 +28,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/a-propos', [HomeController::class, 'about'])->name('about');
 Route::get('/thematiques', [HomeController::class, 'thematiques'])->name('thematiques');
 Route::get('/medias', [HomeController::class, 'medias'])->name('medias');
+Route::get('/medias/{portfolio:slug}', [PortfolioController::class, 'show'])->name('medias.show');
 Route::get('/services', [HomeController::class, 'services'])->name('services');
 Route::post('/services/avis', [ServiceReviewController::class, 'store'])->name('services.reviews.store');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
