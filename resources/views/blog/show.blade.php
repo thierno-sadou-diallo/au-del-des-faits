@@ -23,40 +23,6 @@
                 <h1 class="display-5 fw-bold"><span class="gradient-text">{{ $post->title }}</span></h1>
                 <p class="lead text-secondary">{{ $post->excerpt }}</p>
 
-                <div class="voice-reader mt-4" id="voice-reader">
-                    <div>
-                        <span class="section-kicker">Lecture vocale</span>
-                        <p class="mb-0 text-muted">Ecoutez cet article en audio directement depuis la page.</p>
-                    </div>
-                    <div class="voice-actions">
-                        <button type="button" class="btn btn-primary" id="voice-play">
-                            <i class="fas fa-volume-high me-2"></i>Ecouter
-                        </button>
-                        <button type="button" class="btn btn-outline-primary" id="voice-pause">
-                            <i class="fas fa-pause me-2"></i>Pause
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" id="voice-stop">
-                            <i class="fas fa-stop me-2"></i>Arreter
-                        </button>
-                    </div>
-                </div>
-
-                <div class="translation-panel mt-4" id="translation-panel">
-                    <div class="translation-head">
-                        <div>
-                            <span class="section-kicker">Traduction</span>
-                            <h2 class="h4 fw-bold mb-1"><span class="gradient-text">Lire cet article dans une autre langue</span></h2>
-                            <p class="mb-0 text-muted">Choisissez une langue pour afficher une version traduite.</p>
-                        </div>
-                        <div class="translation-actions">
-                            <button type="button" class="translation-button" data-language="en">Anglais</button>
-                            <button type="button" class="translation-button" data-language="wo">Wolof</button>
-                            <button type="button" class="translation-button" data-language="es">Espagnol</button>
-                        </div>
-                    </div>
-                    <div class="translation-output" id="translation-output" hidden></div>
-                </div>
-
                 @if($post->image_url)
                     <img src="{{ $post->image_url }}" class="article-main-image img-fluid rounded-4 my-4" alt="{{ $post->title }}">
                 @else
@@ -80,7 +46,7 @@
                             <p class="mb-0 text-muted">Choisissez votre reseau prefere ou copiez le lien.</p>
                         </div>
                         <button type="button" class="btn btn-primary" onclick="nativeShareArticle()">
-                            <i class="fas fa-share-nodes me-2"></i>Partager via mon appareil
+                            <i class="fas fa-share-nodes me-2"></i>Partager
                         </button>
                     </div>
 
@@ -133,9 +99,7 @@
                             <label class="form-label">Message</label>
                             <textarea class="form-control" name="message" rows="5" required></textarea>
                         </div>
-                        <div class="col-md-9" id="captcha-wrapper">
-                            <span class="text-muted">Chargement du captcha...</span>
-                        </div>
+                        <div class="col-md-9" id="captcha-wrapper">{!! captcha_img() !!}</div>
                         <div class="col-md-3 d-grid">
                             <button type="button" class="btn btn-outline-secondary" onclick="refreshCaptcha()">Rafraichir</button>
                         </div>
@@ -220,109 +184,23 @@
     </aside>
 </div>
 
+@push('scripts')
 <script>
     const articleShareData = {
         title: @json($shareTitle),
         text: @json($shareText),
         url: @json($shareUrl),
     };
-    const articleVoiceIntro = @json($post->title . '. ' . $post->excerpt);
-    let articleUtterance = null;
 
-    function getArticleUtterance() {
-        const content = document.querySelector('.article-content')?.textContent || '';
-        const articleVoiceText = `${articleVoiceIntro} ${content}`;
-        const utterance = new SpeechSynthesisUtterance(articleVoiceText.replace(/\s+/g, ' ').trim());
-        utterance.lang = 'fr-FR';
-        utterance.rate = 0.95;
-        utterance.pitch = 1;
-        return utterance;
-    }
-
-    function updateVoiceState(state) {
-        const reader = document.getElementById('voice-reader');
-        if (reader) {
-            reader.dataset.state = state;
-        }
-    }
-
-    function playArticleVoice() {
-        if (!('speechSynthesis' in window)) {
-            alert('La lecture vocale n est pas disponible sur ce navigateur.');
-            return;
-        }
-
-        if (window.speechSynthesis.paused) {
-            window.speechSynthesis.resume();
-            updateVoiceState('playing');
-            return;
-        }
-
-        window.speechSynthesis.cancel();
-        articleUtterance = getArticleUtterance();
-        articleUtterance.onend = () => updateVoiceState('idle');
-        articleUtterance.onerror = () => updateVoiceState('idle');
-        window.speechSynthesis.speak(articleUtterance);
-        updateVoiceState('playing');
-    }
-
-    function pauseArticleVoice() {
-        if ('speechSynthesis' in window && window.speechSynthesis.speaking) {
-            window.speechSynthesis.pause();
-            updateVoiceState('paused');
-        }
-    }
-
-    function stopArticleVoice() {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            updateVoiceState('idle');
-        }
-    }
-
-    document.getElementById('voice-play')?.addEventListener('click', playArticleVoice);
-    document.getElementById('voice-pause')?.addEventListener('click', pauseArticleVoice);
-    document.getElementById('voice-stop')?.addEventListener('click', stopArticleVoice);
-    window.addEventListener('beforeunload', stopArticleVoice);
-
-    document.querySelectorAll('.translation-button').forEach((button) => {
-        button.addEventListener('click', async () => {
-            const output = document.getElementById('translation-output');
-            const language = button.dataset.language;
-            document.querySelectorAll('.translation-button').forEach((item) => item.classList.remove('is-active'));
-            button.classList.add('is-active');
-            output.hidden = false;
-            output.textContent = 'Traduction en cours...';
-
-            try {
-                const response = await fetch(`{{ route('blog.translate', $post->slug) }}?language=${language}`);
-                const data = await response.json();
-                output.textContent = data.translation || 'Traduction indisponible.';
-            } catch (error) {
-                output.textContent = 'Impossible de charger la traduction pour le moment.';
+    function refreshCaptcha() {
+        $.ajax({
+            url: '{{ route("captcha.refresh") }}',
+            type: 'GET',
+            success: function(response) {
+                $('#captcha-wrapper').html(response.captcha);
             }
         });
-    });
-
-    async function refreshCaptcha() {
-        const wrapper = document.getElementById('captcha-wrapper');
-        if (!wrapper) {
-            return;
-        }
-
-        try {
-            const response = await fetch('{{ route('captcha.refresh') }}', {
-                headers: { 'Accept': 'application/json' },
-                cache: 'no-store',
-            });
-            const data = await response.json();
-            wrapper.innerHTML = data.captcha || '<span class="text-muted">Captcha indisponible.</span>';
-        } catch (error) {
-            wrapper.innerHTML = '<span class="text-muted">Captcha indisponible. Rechargez la page si besoin.</span>';
-        }
     }
-
-    document.addEventListener('DOMContentLoaded', refreshCaptcha);
 
     async function nativeShareArticle() {
         if (navigator.share) {
@@ -348,6 +226,7 @@
         }
     }
 </script>
+@endpush
 
 @push('styles')
 <style>
@@ -441,81 +320,6 @@
         line-height: .85;
         padding-right: .45rem;
     }
-    .voice-reader {
-        align-items: center;
-        background:
-            linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,247,237,.82)),
-            radial-gradient(circle at 92% 12%, rgba(245,158,11,.18), transparent 10rem);
-        border: 1px solid rgba(245, 158, 11, .24);
-        border-radius: 22px;
-        display: flex;
-        gap: 1rem;
-        justify-content: space-between;
-        padding: 1rem;
-    }
-    .voice-reader[data-state="playing"] {
-        box-shadow: 0 18px 44px rgba(245, 158, 11, .16);
-    }
-    .voice-reader[data-state="playing"] .section-kicker::after {
-        color: #15803d;
-        content: " en cours";
-    }
-    .voice-reader[data-state="paused"] .section-kicker::after {
-        color: #b45309;
-        content: " en pause";
-    }
-    .voice-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: .55rem;
-        justify-content: flex-end;
-    }
-    .translation-panel {
-        background:
-            linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,247,237,.84)),
-            radial-gradient(circle at 8% 100%, rgba(21,128,61,.12), transparent 11rem);
-        border: 1px solid rgba(21, 128, 61, .18);
-        border-radius: 22px;
-        padding: 1rem;
-    }
-    .translation-head {
-        align-items: center;
-        display: flex;
-        gap: 1rem;
-        justify-content: space-between;
-    }
-    .translation-actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: .55rem;
-        justify-content: flex-end;
-    }
-    .translation-button {
-        background: #fff;
-        border: 1px solid rgba(148, 163, 184, .26);
-        border-radius: 999px;
-        color: #0f172a;
-        font-weight: 900;
-        padding: .7rem 1rem;
-        transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
-    }
-    .translation-button:hover,
-    .translation-button.is-active {
-        background: linear-gradient(135deg, #7c2d12, #2563eb);
-        border-color: transparent;
-        color: #fff;
-        transform: translateY(-2px);
-    }
-    .translation-output {
-        background: rgba(255,255,255,.78);
-        border: 1px solid rgba(148, 163, 184, .2);
-        border-radius: 18px;
-        color: #334155;
-        line-height: 1.85;
-        margin-top: 1rem;
-        padding: 1rem;
-        white-space: pre-wrap;
-    }
     .comments-panel {
         border-radius: 24px;
         overflow: hidden;
@@ -576,20 +380,6 @@
         border-color: rgba(37, 99, 235, .18);
     }
     @media (max-width: 767.98px) {
-        .voice-reader {
-            align-items: stretch;
-            flex-direction: column;
-        }
-        .voice-actions .btn {
-            flex: 1 1 auto;
-        }
-        .translation-head {
-            align-items: stretch;
-            flex-direction: column;
-        }
-        .translation-actions {
-            justify-content: flex-start;
-        }
         .reply-list {
             margin-left: .5rem;
             padding-left: .75rem;

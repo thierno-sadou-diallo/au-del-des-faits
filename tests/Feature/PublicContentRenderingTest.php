@@ -32,9 +32,15 @@ class PublicContentRenderingTest extends TestCase
             ->assertHeader('Cache-Control', 'no-store, private')
             ->assertSee('Article public')
             ->assertSee('Texte publie par admin visible par les visiteurs.', false)
-            ->assertSee('Chargement du captcha...')
-            ->assertSee('const articleVoiceIntro =', false)
-            ->assertSee("document.querySelector('.article-content')", false)
+            ->assertSee('Partager')
+            ->assertSee("J'aime", false)
+            ->assertSee('Copier le lien')
+            ->assertSee('Laisser un commentaire')
+            ->assertSee('captcha-wrapper', false)
+            ->assertDontSee('Lecture vocale')
+            ->assertDontSee('Traduction')
+            ->assertDontSee('Chargement du captcha...')
+            ->assertDontSee('articleVoiceIntro', false)
             ->assertSee('.article-layout[data-reveal]', false)
             ->assertSee("!element.closest('.article-layout')", false);
     }
