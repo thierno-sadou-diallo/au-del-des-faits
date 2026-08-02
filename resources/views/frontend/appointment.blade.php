@@ -334,6 +334,25 @@
         border-color: #5eead4;
     }
 
+    .calendar-day-cell.available {
+        background: #ecfdf5;
+        border-color: #14b8a6;
+        box-shadow: inset 0 0 0 1px rgba(20, 184, 166, .18);
+        color: #0f766e;
+    }
+
+    .calendar-day-cell.available .day-number,
+    .calendar-day-cell.available > span:first-child {
+        background: #14b8a6;
+        color: #fff;
+    }
+
+    .calendar-day-cell.available:hover {
+        background: #ccfbf1;
+        border-color: #0f766e;
+        box-shadow: 0 10px 24px rgba(15, 118, 110, .16);
+    }
+
     .calendar-day-cell.other-month,
     .calendar-day-cell.past,
     .calendar-day-cell.unavailable {
@@ -510,7 +529,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function loadAvailabilityForCurrentMonth() {
         const requestId = ++availabilityRequestId;
-        const url = new URL(slotsEndpoint);
+        const url = new URL(slotsEndpoint, window.location.origin);
         url.searchParams.set('month', currentMonth);
         url.searchParams.set('year', currentYear);
 
@@ -582,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const appointmentType = isAvailable ? 'available_day' : (canRequestDate ? 'request_day' : '');
 
-            calendarDays += `<div class="${classes}" data-date="${dateStr}" data-type="${appointmentType}" data-slot-id="${firstSlot ? firstSlot.id : ''}" data-remaining="${remainingPlaces}" data-day="${dayNumber}">
+            calendarDays += `<div class="${classes}" role="${appointmentType ? 'button' : 'presentation'}" tabindex="${appointmentType ? '0' : '-1'}" data-date="${dateStr}" data-type="${appointmentType}" data-slot-id="${firstSlot ? firstSlot.id : ''}" data-remaining="${remainingPlaces}" data-day="${dayNumber}">
                 <span class="day-number">${dayNumber}</span>
                 ${isAvailable ? `<small>${remainingPlaces} place${remainingPlaces > 1 ? 's' : ''}</small>` : ''}
             </div>`;
@@ -615,6 +634,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Ajouter les event listeners UNIQUEMENT aux dates disponibles
         document.querySelectorAll('.calendar-day-cell.available, .calendar-day-cell.requested').forEach(cell => {
             cell.addEventListener('click', selectDate);
+            cell.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    selectDate(event);
+                }
+            });
         });
     }
 
