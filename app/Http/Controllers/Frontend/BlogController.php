@@ -67,7 +67,14 @@ class BlogController extends Controller
 
     public function like(Post $post)
     {
+        $sessionKey = "liked_post_{$post->id}";
+
+        if (session()->has($sessionKey)) {
+            return back()->with('status', 'Votre soutien a deja ete pris en compte.');
+        }
+
         $post->increment('likes');
+        session()->put($sessionKey, true);
 
         return back()->with('status', 'Merci, vous avez aime cet article.');
     }

@@ -32,7 +32,14 @@ class PortfolioController extends Controller
 
     public function like(Portfolio $portfolio)
     {
+        $sessionKey = "liked_portfolio_{$portfolio->id}";
+
+        if (session()->has($sessionKey)) {
+            return back()->with('status', 'Votre soutien a deja ete pris en compte.');
+        }
+
         $portfolio->increment('likes');
+        session()->put($sessionKey, true);
 
         return back()->with('status', 'Merci pour votre soutien.');
     }

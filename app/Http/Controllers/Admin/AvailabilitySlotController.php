@@ -16,21 +16,26 @@ class AvailabilitySlotController extends Controller
         $year = request('year', now()->year);
         $currentDate = Carbon::createFromDate($year, $month, 1);
 
-        // Récupérer les jours disponibles du mois
-        $availableDays = AvailabilitySlot::where('slot_type', 'available')
+        $monthSlots = AvailabilitySlot::where('slot_type', 'available')
             ->whereYear('available_date', $year)
             ->whereMonth('available_date', $month)
+            ->orderBy('available_date')
+            ->get();
+
+        $availableDays = $monthSlots
             ->pluck('available_date')
-            ->map(fn($date) => $date->day)
+            ->map(fn ($date) => $date->day)
+            ->unique()
+            ->values()
             ->toArray();
 
-        // Récupérer les demandes en attente
         $pendingRequests = Appointment::pendingApproval()
             ->distinct()
             ->pluck('appointment_date')
-            ->map(fn($date) => $date->format('Y-m-d'))
+            ->map(fn ($date) => $date->format('Y-m-d'))
             ->toArray();
 
+        $availabilityMap = $this->buildAvailabilityMap($monthSlots);
         $slots = AvailabilitySlot::orderBy('start_time', 'desc')->paginate(20);
 
         return view('admin.availability-slots.index', [
@@ -38,6 +43,7 @@ class AvailabilitySlotController extends Controller
             'currentDate' => $currentDate,
             'availableDays' => $availableDays,
             'pendingRequests' => $pendingRequests,
+            'availabilityMap' => $availabilityMap,
             'month' => $month,
             'year' => $year,
         ]);
@@ -49,17 +55,30 @@ class AvailabilitySlotController extends Controller
         $year = request('year', now()->year);
         $currentDate = Carbon::createFromDate($year, $month, 1);
 
-        // Récupérer les jours disponibles du mois
-        $availableDays = AvailabilitySlot::where('slot_type', 'available')
+        $monthSlots = AvailabilitySlot::where('slot_type', 'available')
             ->whereYear('available_date', $year)
             ->whereMonth('available_date', $month)
+            ->orderBy('available_date')
+            ->get();
+
+        $availableDays = $monthSlots
             ->pluck('available_date')
-            ->map(fn($date) => $date->day)
+            ->map(fn ($date) => $date->day)
+            ->unique()
+            ->values()
+            ->toArray();
+
+        $pendingRequests = Appointment::pendingApproval()
+            ->distinct()
+            ->pluck('appointment_date')
+            ->map(fn ($date) => $date->format('Y-m-d'))
             ->toArray();
 
         return view('admin.availability-slots.calendar', [
             'currentDate' => $currentDate,
             'availableDays' => $availableDays,
+            'pendingRequests' => $pendingRequests,
+            'availabilityMap' => $this->buildAvailabilityMap($monthSlots),
             'month' => $month,
             'year' => $year,
         ]);
@@ -73,17 +92,14 @@ class AvailabilitySlotController extends Controller
 
         $date = Carbon::createFromFormat('Y-m-d', $validated['date'])->toDateString();
 
-        // Vérifier si le jour existe déjà
         $slot = AvailabilitySlot::where('available_date', $date)
             ->where('slot_type', 'available')
             ->first();
 
         if ($slot) {
-            // Supprimer le jour disponible
             $slot->delete();
-            $message = 'Jour supprimé du calendrier.';
+            $message = 'Jour supprime du calendrier.';
         } else {
-            // Ajouter le jour comme disponible
             $availableDate = Carbon::parse($date);
 
             AvailabilitySlot::create([
@@ -93,7 +109,7 @@ class AvailabilitySlotController extends Controller
                 'end_time' => $availableDate->copy()->endOfDay(),
                 'is_available' => true,
             ]);
-            $message = 'Jour ajouté au calendrier.';
+            $message = 'Jour ajoute au calendrier.';
         }
 
         if ($request->wantsJson()) {
@@ -122,14 +138,14 @@ class AvailabilitySlotController extends Controller
             'status' => 'confirmed',
         ]);
 
-        return back()->with('status', 'Demande approuvée. Le rendez-vous est confirmé.');
+        return back()->with('status', 'Demande approuvee. Le rendez-vous est confirme.');
     }
 
     public function rejectRequest(Appointment $appointment)
     {
         $appointment->update(['status' => 'cancelled']);
 
-        return back()->with('status', 'Demande rejetée.');
+        return back()->with('status', 'Demande rejetee.');
     }
 
     public function create()
@@ -156,7 +172,7 @@ class AvailabilitySlotController extends Controller
         AvailabilitySlot::create($validated);
 
         return redirect()->route('admin.availability-slots.index')
-            ->with('status', 'Créneau de disponibilité créé avec succès.');
+            ->with('status', 'Creneau de disponibilite cree avec succes.');
     }
 
     public function edit(AvailabilitySlot $availabilitySlot)
@@ -185,7 +201,7 @@ class AvailabilitySlotController extends Controller
         $availabilitySlot->update($validated);
 
         return redirect()->route('admin.availability-slots.index')
-            ->with('status', 'Créneau de disponibilité mis à jour avec succès.');
+            ->with('status', 'Creneau de disponibilite mis a jour avec succes.');
     }
 
     public function destroy(AvailabilitySlot $availabilitySlot)
@@ -193,6 +209,19 @@ class AvailabilitySlotController extends Controller
         $availabilitySlot->delete();
 
         return redirect()->route('admin.availability-slots.index')
-            ->with('status', 'Créneau de disponibilité supprimé avec succès.');
+            ->with('status', 'Creneau de disponibilite supprime avec succes.');
+    }
+
+    private function buildAvailabilityMap($slots): array
+    {
+        return $slots
+            ->groupBy(fn ($slot) => $slot->available_date->format('Y-m-d'))
+            ->map(fn ($slots) => [
+                'count' => $slots->count(),
+                'capacity' => $slots->sum('max_appointments'),
+                'remaining' => $slots->sum(fn ($slot) => max($slot->max_appointments - $slot->current_appointments, 0)),
+                'full' => $slots->every(fn ($slot) => $slot->current_appointments >= $slot->max_appointments),
+            ])
+            ->toArray();
     }
 }

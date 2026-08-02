@@ -2,31 +2,43 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Storage;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
         //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // S'assurer que les répertoires de stockage existent
+        $this->configureRateLimiting();
         $this->ensureStorageDirectoriesExist();
     }
 
-    /**
-     * S'assurer que les répertoires de stockage existent avec les bonnes permissions
-     */
+    private function configureRateLimiting(): void
+    {
+        RateLimiter::for('public-form', fn (Request $request) => [
+            Limit::perMinute(5)->by($request->ip()),
+        ]);
+
+        RateLimiter::for('appointment-request', fn (Request $request) => [
+            Limit::perMinute(3)->by($request->ip()),
+        ]);
+
+        RateLimiter::for('like-action', fn (Request $request) => [
+            Limit::perMinute(20)->by($request->ip()),
+        ]);
+
+        RateLimiter::for('translation', fn (Request $request) => [
+            Limit::perHour(20)->by($request->ip()),
+        ]);
+    }
+
     private function ensureStorageDirectoriesExist(): void
     {
         try {
@@ -38,29 +50,22 @@ class AppServiceProvider extends ServiceProvider
             ];
 
             foreach ($directories as $directory) {
-                if (!is_dir($directory)) {
+                if (! is_dir($directory)) {
                     mkdir($directory, 0755, true);
                 }
-                
-                // S'assurer que les permissions sont correctes
+
                 chmod($directory, 0755);
             }
 
-            // Vérifier le symlink
             $linkPath = public_path('storage');
             $targetPath = storage_path('app/public');
 
-            if (!file_exists($linkPath) && !is_link($linkPath)) {
-                // Créer le symlink si possible
-                if (PHP_OS_FAMILY !== 'Windows') {
-                    @symlink($targetPath, $linkPath);
-                }
+            if (! file_exists($linkPath) && ! is_link($linkPath) && PHP_OS_FAMILY !== 'Windows') {
+                @symlink($targetPath, $linkPath);
             }
-        } catch (\Exception $e) {
-            // Silencieusement ignorer les erreurs au démarrage
-            // Mais on peut les logger en développement
+        } catch (\Throwable $e) {
             if (app()->isLocal()) {
-                \Log::debug('Storage initialization error: ' . $e->getMessage());
+                \Log::debug('Storage initialization error: '.$e->getMessage());
             }
         }
     }

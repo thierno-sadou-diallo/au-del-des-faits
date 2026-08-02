@@ -63,6 +63,8 @@ class PublicContentRenderingTest extends TestCase
             ]);
             $imageUrl = $portfolio->fresh()->cover_image_url;
 
+            $this->assertStringContainsString('/media-storage/portfolio/media-test.jpg', $imageUrl);
+
             $this->get(route('medias'))
                 ->assertOk()
                 ->assertSee('Media public')
@@ -79,5 +81,18 @@ class PublicContentRenderingTest extends TestCase
         } finally {
             @unlink($imageDirectory.'/media-test.jpg');
         }
+    }
+
+    public function test_blog_image_urls_use_dedicated_media_storage_route(): void
+    {
+        $post = new Post([
+            'title' => 'Article avec image',
+            'slug' => 'article-avec-image',
+            'content' => 'Contenu',
+            'status' => 'published',
+            'image' => 'posts/article-test.jpg',
+        ]);
+
+        $this->assertStringContainsString('/media-storage/posts/article-test.jpg', $post->image_url);
     }
 }

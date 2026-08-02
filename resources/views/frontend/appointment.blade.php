@@ -45,15 +45,16 @@
 
                 <!-- Calendrier pour sélectionner une date -->
                 <div class="calendar-selector">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <button class="btn btn-sm btn-outline-primary" id="prev-month" type="button" style="padding: 0.35rem 0.55rem; font-size: 0.8rem;">
+                    <div class="calendar-month-toolbar">
+                        <button class="calendar-nav-button" id="prev-month" type="button" aria-label="Mois precedent">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <h6 id="month-display" class="mb-0" style="font-size: 0.95rem;">{{ $currentDate->locale('fr')->monthName }} {{ $currentDate->year }}</h6>
-                        <button class="btn btn-sm btn-outline-primary" id="next-month" type="button" style="padding: 0.35rem 0.55rem; font-size: 0.8rem;">
+                        <h3 id="month-display" class="calendar-month-title">{{ ucfirst($currentDate->locale('fr')->monthName) }}</h3>
+                        <button class="calendar-nav-button" id="next-month" type="button" aria-label="Mois suivant">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
+                    <p id="year-display" class="calendar-year">{{ $currentDate->year }}</p>
 
                     <!-- Message si pas de dates disponibles -->
                     <div id="no-available-dates" class="alert alert-info alert-sm mb-3" style="display: none;">
@@ -63,13 +64,13 @@
 
                     <!-- Grille calendaire -->
                     <div class="calendar-grid-user mb-2">
-                        <div class="calendar-day-header">Lun</div>
-                        <div class="calendar-day-header">Mar</div>
-                        <div class="calendar-day-header">Mer</div>
-                        <div class="calendar-day-header">Jeu</div>
-                        <div class="calendar-day-header">Ven</div>
-                        <div class="calendar-day-header">Sam</div>
-                        <div class="calendar-day-header">Dim</div>
+                        <div class="calendar-day-header">L</div>
+                        <div class="calendar-day-header">M</div>
+                        <div class="calendar-day-header">M</div>
+                        <div class="calendar-day-header">J</div>
+                        <div class="calendar-day-header">V</div>
+                        <div class="calendar-day-header">S</div>
+                        <div class="calendar-day-header">D</div>
 
                         <div id="calendar-days"></div>
                     </div>
@@ -162,6 +163,15 @@
                             <textarea class="form-control form-control-sm @error('message') is-invalid @enderror" id="message" name="message" rows="4" required>{{ old('message') }}</textarea>
                             @error('message')<span class="invalid-feedback">{{ $message }}</span>@enderror
                         </div>
+                        <div class="col-md-9" id="appointment-captcha-wrapper">{!! captcha_img() !!}</div>
+                        <div class="col-md-3 d-grid">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="refreshAppointmentCaptcha()">Rafraichir</button>
+                        </div>
+                        <div class="col-12">
+                            <label for="appointment_captcha" class="form-label fw-bold" style="font-size: 0.9rem;">Captcha *</label>
+                            <input type="text" class="form-control form-control-sm @error('captcha') is-invalid @enderror" id="appointment_captcha" name="captcha" required>
+                            @error('captcha')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                        </div>
                         <div class="col-12">
                             <button type="submit" class="btn btn-primary btn-sm w-100" id="appointment-submit" disabled>
                                 <i class="fas fa-paper-plane me-1"></i>Envoyer la demande
@@ -212,95 +222,178 @@
         background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.94));
     }
 
-    .calendar-grid-user {
+    .calendar-selector {
+        overflow: hidden;
+    }
+
+    .calendar-month-toolbar {
+        align-items: center;
+        border-bottom: 1px solid #e5e7eb;
         display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 6px;
+        grid-template-columns: 2.25rem 1fr 2.25rem;
+        gap: .5rem;
+        padding-bottom: .25rem;
+    }
+
+    .calendar-month-title {
+        color: #ff3b35;
+        font-size: clamp(2.15rem, 6vw, 4.15rem);
+        font-weight: 950;
+        letter-spacing: 0;
+        line-height: 1;
+        margin: 0;
+        text-align: center;
+        text-transform: capitalize;
+    }
+
+    .calendar-year {
+        color: #94a3b8;
+        font-size: .76rem;
+        font-weight: 900;
+        margin: .35rem 0 1rem;
+        text-align: center;
+    }
+
+    .calendar-nav-button {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
+        color: #334155;
+        display: inline-flex;
+        height: 2.25rem;
+        justify-content: center;
+        transition: .2s ease;
+        width: 2.25rem;
+    }
+
+    .calendar-nav-button:hover {
+        border-color: #ff3b35;
+        color: #ff3b35;
+    }
+
+    .calendar-grid-user,
+    #calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    #calendar-days {
+        display: contents;
     }
 
     .calendar-day-header {
-        font-weight: bold;
+        color: #94a3b8;
+        font-size: .68rem;
+        font-weight: 900;
+        padding: .2rem 0 .55rem;
         text-align: center;
-        padding: 6px 4px;
-        background: #f5f5f5;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        grid-column: span 1;
     }
 
     .calendar-day-cell {
-        border: 2px solid #ddd;
-        border-radius: 6px;
-        padding: 4px 2px;
-        text-align: center;
+        align-items: center;
+        background: #fff;
+        border: 0;
+        border-top: 1px solid #e5e7eb;
+        color: #020617;
         cursor: pointer;
-        transition: all 0.2s ease;
-        background: white;
-        font-size: 0.8rem;
-        min-height: 48px;
         display: flex;
         flex-direction: column;
-        align-items: center;
+        gap: .35rem;
         justify-content: center;
-        font-weight: 500;
+        min-height: clamp(4.25rem, 11vw, 6.8rem);
+        padding: .45rem .15rem;
+        text-align: center;
+        transition: .18s ease;
     }
 
-    .calendar-day-cell small {
-        display: block;
-        font-size: 0.62rem;
-        font-weight: 800;
-        line-height: 1.1;
-        margin-top: 2px;
+    .calendar-day-cell .day-number,
+    .calendar-day-cell > span:first-child {
+        align-items: center;
+        border-radius: .95rem;
+        display: inline-flex;
+        font-size: clamp(1.55rem, 5.4vw, 3.05rem);
+        font-weight: 950;
+        height: clamp(2.2rem, 7vw, 3.8rem);
+        justify-content: center;
+        letter-spacing: 0;
+        line-height: 1;
+        min-width: clamp(2.2rem, 7vw, 3.8rem);
+        padding: 0 .35rem;
     }
 
     .calendar-day-cell:hover:not(.other-month):not(.past):not(.unavailable) {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
-        transform: translateY(-1px);
+        background: #fff7ed;
     }
 
-    .calendar-day-cell.other-month {
-        background: #f9f9f9;
-        color: #ccc;
-        cursor: not-allowed;
-    }
-
+    .calendar-day-cell.other-month,
     .calendar-day-cell.past,
     .calendar-day-cell.unavailable {
-        background: #f5f5f5;
-        color: #bbb;
+        color: #9ca3af;
         cursor: not-allowed;
-        border-color: #ddd;
     }
 
-    .calendar-day-cell.available {
-        border-color: #28a745;
-        background: rgba(40, 167, 69, 0.08);
-        color: #155724;
+    .calendar-day-cell.selected .day-number,
+    .calendar-day-cell.selected > span:first-child {
+        background: #ff3b35;
+        color: #fff;
     }
 
-    .calendar-day-cell.available:hover {
-        background: rgba(40, 167, 69, 0.15);
+    .calendar-day-cell.selected {
+        color: #ff3b35;
     }
 
-    .calendar-day-cell.available.selected {
-        background: #28a745;
-        color: white;
-        border-color: #28a745;
-        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    .calendar-day-cell.available::after,
+    .calendar-day-cell.requested::after {
+        border-radius: 999px;
+        content: "";
+        display: block;
+        height: .55rem;
+        order: 2;
     }
 
-    .calendar-day-cell.requested {
-        border-color: #f59e0b;
-        background: rgba(245, 158, 11, 0.1);
-        color: #92400e;
+    .calendar-day-cell.available::after {
+        background: #e9a4f0;
+        box-shadow: 0 0 0 3px rgba(233, 164, 240, .18);
+        width: .55rem;
     }
 
-    .calendar-day-cell.requested.selected {
-        background: #f59e0b;
-        color: white;
-        border-color: #f59e0b;
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+    .calendar-day-cell.requested::after {
+        background: #fdc46f;
+        width: 1.35rem;
+    }
+
+    .calendar-markers {
+        align-items: center;
+        display: flex;
+        gap: .14rem;
+        min-height: .7rem;
+    }
+
+    .calendar-marker {
+        background: #e9a4f0;
+        border-radius: 999px;
+        display: inline-block;
+        height: .55rem;
+        width: .55rem;
+    }
+
+    .calendar-marker.request {
+        background: #fdc46f;
+        width: 1.35rem;
+    }
+
+    .calendar-day-cell.available .calendar-marker.available {
+        box-shadow: 0 0 0 3px rgba(233, 164, 240, .18);
+    }
+
+    .calendar-day-cell small {
+        color: #64748b;
+        display: block;
+        font-size: .62rem;
+        font-weight: 900;
+        line-height: 1;
+        order: 3;
     }
 
     .date-legend {
@@ -321,21 +414,19 @@
     }
 
     .legend-color {
-        width: 16px;
-        height: 16px;
-        border-radius: 3px;
-        border: 2px solid;
+        width: 18px;
+        height: 10px;
+        border-radius: 999px;
+        border: 0;
         flex-shrink: 0;
     }
 
     .legend-color.available {
-        background: rgba(40, 167, 69, 0.1);
-        border-color: #28a745;
+        background: #e9a4f0;
     }
 
     .legend-color.requested {
-        background: rgba(245, 158, 11, 0.12);
-        border-color: #f59e0b;
+        background: #fdc46f;
     }
 
     .appointment-note {
@@ -377,8 +468,8 @@
 
     @media (max-width: 575.98px) {
         .appointment-hero-actions .btn { width: 100%; }
-        .calendar-grid-user { gap: 4px; }
-        .calendar-day-cell { min-height: 40px; font-size: 0.75rem; }
+        .calendar-day-cell { min-height: 3.9rem; }
+        .calendar-day-cell small { display: none; }
         .date-legend { flex-direction: column; gap: 6px; }
     }
 </style>
@@ -408,8 +499,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
                           'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-        document.getElementById('month-display').textContent = 
-            monthNames[currentMonth - 1] + ' ' + currentYear;
+        document.getElementById('month-display').textContent = new Intl.DateTimeFormat('fr-FR', { month: 'long' })
+            .format(new Date(currentYear, currentMonth - 1, 1));
+        document.getElementById('year-display').textContent = currentYear;
 
         let calendarDays = '';
         let hasAvailableDates = false;
@@ -522,6 +614,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     generateCalendar();
 });
+
+function refreshAppointmentCaptcha() {
+    fetch('{{ route('captcha.refresh') }}')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('appointment-captcha-wrapper').innerHTML = data.captcha;
+        });
+}
 </script>
 @endpush
 

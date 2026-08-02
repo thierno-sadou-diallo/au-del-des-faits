@@ -23,7 +23,16 @@ class NewsletterSubscriberController extends Controller
 
         // Tri
         $sort = $request->input('sort', 'created_at');
-        $order = $request->input('order', 'desc');
+        $order = strtolower($request->input('order', 'desc'));
+
+        if (! in_array($sort, ['email', 'created_at', 'updated_at'], true)) {
+            $sort = 'created_at';
+        }
+
+        if (! in_array($order, ['asc', 'desc'], true)) {
+            $order = 'desc';
+        }
+
         $query->orderBy($sort, $order);
 
         // Pagination

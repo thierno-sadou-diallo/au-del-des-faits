@@ -100,6 +100,7 @@ class AppointmentController extends Controller
             'organization' => 'nullable|string|max:255',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|max:2000',
+            'captcha' => app()->environment('testing') ? ['nullable'] : ['required', 'captcha'],
         ]);
 
         try {
@@ -190,7 +191,8 @@ class AppointmentController extends Controller
 
     public function statusForm()
     {
-        return view('frontend.appointment-status-form', [
+        return view('frontend.appointment-status', [
+            'appointment' => null,
             'seoTitle' => 'Suivi de rendez-vous - Au-dela des faits',
             'seoDescription' => 'Suivez l etat de votre demande de rendez-vous.',
         ]);
@@ -199,19 +201,22 @@ class AppointmentController extends Controller
     public function statusLookup(Request $request)
     {
         $request->validate([
+            'tracking_token' => 'required|string|max:128',
             'email' => 'required|email',
         ]);
 
-        $appointments = Appointment::where('email', $request->email)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $appointment = Appointment::where('tracking_token', $request->tracking_token)
+            ->where('email', $request->email)
+            ->first();
 
-        if ($appointments->isEmpty()) {
-            return back()->with('error', 'Aucun rendez-vous trouve pour cet email.');
+        if (! $appointment) {
+            return back()
+                ->withErrors(['tracking_token' => 'Aucune demande ne correspond a cette reference et cet email.'])
+                ->withInput();
         }
 
         return view('frontend.appointment-status', [
-            'appointments' => $appointments,
+            'appointment' => $appointment,
             'seoTitle' => 'Votre suivi - Au-dela des faits',
             'seoDescription' => 'Consultez l etat de vos demandes de rendez-vous.',
         ]);
@@ -219,12 +224,11 @@ class AppointmentController extends Controller
 
     public function statusShow(string $token)
     {
-        $appointment = Appointment::where('tracking_token', $token)->firstOrFail();
-
-        return view('frontend.appointment-status-detail', [
-            'appointment' => $appointment,
-            'seoTitle' => 'Detail du rendez-vous - Au-dela des faits',
-            'seoDescription' => 'Consultez les details de votre rendez-vous.',
+        return view('frontend.appointment-status', [
+            'appointment' => null,
+            'trackingToken' => $token,
+            'seoTitle' => 'Suivi de rendez-vous - Au-dela des faits',
+            'seoDescription' => 'Verifiez votre rendez-vous avec votre reference et votre email.',
         ]);
     }
 

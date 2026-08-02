@@ -15,14 +15,17 @@ class ServiceReviewController extends Controller
             'organization' => 'nullable|string|max:160',
             'rating' => 'required|integer|min:1|max:5',
             'message' => 'required|string|min:10|max:1200',
+            'captcha' => app()->environment('testing') ? ['nullable'] : ['required', 'captcha'],
         ]);
+
+        unset($validated['captcha']);
 
         ServiceReview::create([
             ...$validated,
             'email' => '',
-            'is_approved' => true,
+            'is_approved' => false,
         ]);
 
-        return back()->with('status', 'Merci pour votre avis. Il est maintenant visible dans l espace services.');
+        return back()->with('status', 'Merci pour votre avis. Il sera publie apres validation.');
     }
 }

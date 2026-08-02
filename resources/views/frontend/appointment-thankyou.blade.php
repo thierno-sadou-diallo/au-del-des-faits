@@ -36,7 +36,7 @@
 
                 <div class="d-flex justify-content-center gap-3 flex-wrap mt-4">
                     @if($appointment)
-                        <a href="{{ route('appointment.status.show', $appointment->tracking_token) }}" class="btn btn-primary">Suivre ma demande</a>
+                        <a href="{{ route('appointment.status.show', $appointment->tracking_token) }}" class="btn btn-primary">Verifier avec mon email</a>
                     @endif
                     <a href="{{ route('appointment') }}" class="btn btn-outline-secondary">Nouvelle demande</a>
                     <a href="{{ route('home') }}" class="btn btn-outline-secondary">Accueil</a>

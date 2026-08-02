@@ -141,9 +141,18 @@
                         <textarea class="form-control @error('message') is-invalid @enderror" id="review_message" name="message" rows="5" required>{{ old('message') }}</textarea>
                         @error('message')<span class="invalid-feedback">{{ $message }}</span>@enderror
                     </div>
+                    <div class="col-md-8" id="service-review-captcha-wrapper">{!! captcha_img() !!}</div>
+                    <div class="col-md-4 d-grid">
+                        <button class="btn btn-outline-light" type="button" onclick="refreshServiceReviewCaptcha()">Rafraichir</button>
+                    </div>
+                    <div class="col-12">
+                        <label for="service_review_captcha" class="form-label fw-bold">Captcha *</label>
+                        <input type="text" class="form-control @error('captcha') is-invalid @enderror" id="service_review_captcha" name="captcha" required>
+                        @error('captcha')<span class="invalid-feedback">{{ $message }}</span>@enderror
+                    </div>
                     <div class="col-12">
                         <button class="btn btn-light btn-lg w-100" type="submit">
-                            <i class="fas fa-comment-dots me-2"></i>Publier mon avis
+                            <i class="fas fa-comment-dots me-2"></i>Envoyer mon avis
                         </button>
                     </div>
                 </div>
@@ -673,4 +682,16 @@
         to { transform: translateX(-50%); }
     }
 </style>
+@endpush
+
+@push('scripts')
+<script>
+function refreshServiceReviewCaptcha() {
+    fetch('{{ route('captcha.refresh') }}')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('service-review-captcha-wrapper').innerHTML = data.captcha;
+        });
+}
+</script>
 @endpush

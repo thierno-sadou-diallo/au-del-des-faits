@@ -30,34 +30,46 @@ Route::get('/thematiques', [HomeController::class, 'thematiques'])->name('themat
 Route::get('/medias', [HomeController::class, 'medias'])->name('medias');
 Route::get('/medias/{portfolio:slug}', [PortfolioController::class, 'show'])->name('medias.show');
 Route::get('/services', [HomeController::class, 'services'])->name('services');
-Route::post('/services/avis', [ServiceReviewController::class, 'store'])->name('services.reviews.store');
+Route::post('/services/avis', [ServiceReviewController::class, 'store'])->middleware('throttle:public-form')->name('services.reviews.store');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
-Route::post('/contact', [HomeController::class, 'storeContact'])->name('contact.store');
+Route::post('/contact', [HomeController::class, 'storeContact'])->middleware('throttle:public-form')->name('contact.store');
 Route::get('/rendez-vous', [AppointmentController::class, 'index'])->name('appointment.fr');
 Route::get('/appointment', [AppointmentController::class, 'index'])->name('appointment');
-Route::post('/appointment', [AppointmentController::class, 'store'])->name('appointment.store');
+Route::post('/appointment', [AppointmentController::class, 'store'])->middleware('throttle:appointment-request')->name('appointment.store');
 Route::get('/appointment/thank-you', [AppointmentController::class, 'thankYou'])->name('appointment.thankyou');
 Route::get('/appointment/suivi', [AppointmentController::class, 'statusForm'])->name('appointment.status');
-Route::post('/appointment/suivi', [AppointmentController::class, 'statusLookup'])->name('appointment.status.lookup');
+Route::post('/appointment/suivi', [AppointmentController::class, 'statusLookup'])->middleware('throttle:public-form')->name('appointment.status.lookup');
 Route::get('/appointment/suivi/{appointment:tracking_token}', [AppointmentController::class, 'statusShow'])->name('appointment.status.show');
 Route::get('/api/appointments/slots', [AppointmentController::class, 'getSlots'])->name('appointment.slots');
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
-Route::get('/blog/{post:slug}/translate', [BlogController::class, 'translate'])->name('blog.translate');
+Route::get('/blog/{post:slug}/translate', [BlogController::class, 'translate'])->middleware('throttle:translation')->name('blog.translate');
 Route::get('/blog/{post:slug}', [BlogController::class, 'show'])->name('blog.show');
-Route::post('/blog/{post}/comments', [CommentController::class, 'store'])->name('blog.comments.store');
-Route::post('/blog/{post}/like', [BlogController::class, 'like'])->name('blog.like');
+Route::post('/blog/{post}/comments', [CommentController::class, 'store'])->middleware('throttle:public-form')->name('blog.comments.store');
+Route::post('/blog/{post}/like', [BlogController::class, 'like'])->middleware('throttle:like-action')->name('blog.like');
 
 Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
-Route::post('/portfolio/{portfolio}/like', [PortfolioController::class, 'like'])->name('portfolio.like');
-Route::post('/portfolio/{portfolio}/comments', [CommentController::class, 'storePortfolioComment'])->name('portfolio.comments.store');
+Route::post('/portfolio/{portfolio}/like', [PortfolioController::class, 'like'])->middleware('throttle:like-action')->name('portfolio.like');
+Route::post('/portfolio/{portfolio}/comments', [CommentController::class, 'storePortfolioComment'])->middleware('throttle:public-form')->name('portfolio.comments.store');
 Route::get('/portfolio/{portfolio:slug}', [PortfolioController::class, 'show'])->name('portfolio.show');
 
-Route::get('/refresh-captcha', fn () => response()->json(['captcha' => captcha_img()]))->name('captcha.refresh');
-Route::post('/newsletter/subscribe', [NewsletterController::class, 'store'])->name('newsletter.subscribe');
+Route::get('/refresh-captcha', fn () => response()->json(['captcha' => captcha_img()]))->middleware('throttle:public-form')->name('captcha.refresh');
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'store'])->middleware('throttle:public-form')->name('newsletter.subscribe');
 
 Route::get('/media-storage/{path}', function (string $path) {
-    // Nettoyer le chemin
-    $path = trim($path, '/');
+    $path = trim(rawurldecode($path), "/\\");
+    $path = str_replace('\\', '/', $path);
+
+    if ($path === '' || str_contains($path, "\0") || preg_match('#(^|/)\.\.(/|$)#', $path)) {
+        abort(404, 'Fichier non trouve');
+    }
+
+    if (str_starts_with($path, 'storage/')) {
+        $path = substr($path, strlen('storage/'));
+    }
+
+    if (str_starts_with($path, 'public/')) {
+        $path = substr($path, strlen('public/'));
+    }
     
     // Essayer plusieurs emplacements possibles
     $possiblePaths = [
@@ -81,8 +93,20 @@ Route::get('/media-storage/{path}', function (string $path) {
 })->where('path', '.*')->name('media.storage');
 
 Route::get('/storage/{path}', function (string $path) {
-    // Nettoyer le chemin
-    $path = trim($path, '/');
+    $path = trim(rawurldecode($path), "/\\");
+    $path = str_replace('\\', '/', $path);
+
+    if ($path === '' || str_contains($path, "\0") || preg_match('#(^|/)\.\.(/|$)#', $path)) {
+        abort(404, 'Fichier non trouve');
+    }
+
+    if (str_starts_with($path, 'storage/')) {
+        $path = substr($path, strlen('storage/'));
+    }
+
+    if (str_starts_with($path, 'public/')) {
+        $path = substr($path, strlen('public/'));
+    }
     
     // Essayer plusieurs emplacements possibles
     $possiblePaths = [

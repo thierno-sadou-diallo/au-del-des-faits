@@ -40,7 +40,7 @@
                     @csrf
                     <div class="col-12">
                         <label for="tracking_token" class="form-label fw-bold">Reference *</label>
-                        <input type="text" name="tracking_token" id="tracking_token" class="form-control" value="{{ old('tracking_token', $appointment?->tracking_token) }}" placeholder="ADF-2026-XXXXXXXXXX" required>
+                        <input type="text" name="tracking_token" id="tracking_token" class="form-control" value="{{ old('tracking_token', $appointment?->tracking_token ?? ($trackingToken ?? '')) }}" placeholder="ADF-2026-XXXXXXXXXX" required>
                     </div>
                     <div class="col-12">
                         <label for="email" class="form-label fw-bold">Email utilise *</label>

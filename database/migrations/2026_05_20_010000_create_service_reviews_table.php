@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('organization', 160)->nullable();
             $table->unsignedTinyInteger('rating')->default(5);
             $table->text('message');
-            $table->boolean('is_approved')->default(true);
+            $table->boolean('is_approved')->default(false);
             $table->timestamps();
         });
     }

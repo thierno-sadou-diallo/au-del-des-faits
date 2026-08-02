@@ -127,13 +127,8 @@ class Portfolio extends Model
             $path = Str::after($path, 'public/');
         }
 
-        // Essayer d'abord le chemin direct via le symlink public/storage
-        $publicStoragePath = 'storage/' . $path;
-        if (file_exists(public_path($publicStoragePath))) {
-            return asset($publicStoragePath);
-        }
-
-        // Sinon, utiliser la route media-storage comme fallback
+        // Utiliser une route applicative dediee evite les problemes de symlink
+        // et les conflits avec la route interne /storage de Laravel en production.
         return route('media.storage', ['path' => $path]);
     }
 }
