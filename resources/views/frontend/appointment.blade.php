@@ -223,34 +223,41 @@
     }
 
     .calendar-selector {
+        background: #fff;
+        border: 1px solid rgba(148, 163, 184, .26);
+        border-radius: 16px;
+        box-shadow: 0 12px 34px rgba(15, 23, 42, .07);
         overflow: hidden;
+        padding: .65rem;
     }
 
     .calendar-month-toolbar {
         align-items: center;
-        border-bottom: 1px solid #e5e7eb;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
         display: grid;
-        grid-template-columns: 2.25rem 1fr 2.25rem;
+        grid-template-columns: 2rem 1fr 2rem;
         gap: .5rem;
-        padding-bottom: .25rem;
+        padding: .35rem;
     }
 
     .calendar-month-title {
-        color: #ff3b35;
-        font-size: clamp(2.15rem, 6vw, 4.15rem);
-        font-weight: 950;
+        color: #0f172a;
+        font-size: clamp(.95rem, 2.5vw, 1.22rem);
+        font-weight: 900;
         letter-spacing: 0;
-        line-height: 1;
+        line-height: 1.1;
         margin: 0;
         text-align: center;
         text-transform: capitalize;
     }
 
     .calendar-year {
-        color: #94a3b8;
-        font-size: .76rem;
+        color: #64748b;
+        font-size: .64rem;
         font-weight: 900;
-        margin: .35rem 0 1rem;
+        margin: .3rem 0 .6rem;
         text-align: center;
     }
 
@@ -258,18 +265,18 @@
         align-items: center;
         background: #fff;
         border: 1px solid #e2e8f0;
-        border-radius: 999px;
+        border-radius: 10px;
         color: #334155;
         display: inline-flex;
-        height: 2.25rem;
+        height: 2rem;
         justify-content: center;
-        transition: .2s ease;
-        width: 2.25rem;
+        transition: .18s ease;
+        width: 2rem;
     }
 
     .calendar-nav-button:hover {
-        border-color: #ff3b35;
-        color: #ff3b35;
+        border-color: #14b8a6;
+        color: #0f766e;
     }
 
     .calendar-grid-user,
@@ -283,26 +290,26 @@
     }
 
     .calendar-day-header {
-        color: #94a3b8;
-        font-size: .68rem;
+        color: #64748b;
+        font-size: .58rem;
         font-weight: 900;
-        padding: .2rem 0 .55rem;
+        padding: .15rem 0 .35rem;
         text-align: center;
     }
 
     .calendar-day-cell {
         align-items: center;
         background: #fff;
-        border: 0;
-        border-top: 1px solid #e5e7eb;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
         color: #020617;
         cursor: pointer;
         display: flex;
         flex-direction: column;
-        gap: .35rem;
+        gap: .26rem;
         justify-content: center;
-        min-height: clamp(4.25rem, 11vw, 6.8rem);
-        padding: .45rem .15rem;
+        min-height: clamp(3rem, 6.5vw, 3.85rem);
+        padding: .28rem .12rem;
         text-align: center;
         transition: .18s ease;
     }
@@ -310,37 +317,42 @@
     .calendar-day-cell .day-number,
     .calendar-day-cell > span:first-child {
         align-items: center;
-        border-radius: .95rem;
+        border-radius: 8px;
         display: inline-flex;
-        font-size: clamp(1.55rem, 5.4vw, 3.05rem);
-        font-weight: 950;
-        height: clamp(2.2rem, 7vw, 3.8rem);
+        font-size: clamp(.82rem, 2.55vw, 1.05rem);
+        font-weight: 900;
+        height: 1.55rem;
         justify-content: center;
         letter-spacing: 0;
         line-height: 1;
-        min-width: clamp(2.2rem, 7vw, 3.8rem);
-        padding: 0 .35rem;
+        min-width: 1.55rem;
+        padding: 0 .25rem;
     }
 
     .calendar-day-cell:hover:not(.other-month):not(.past):not(.unavailable) {
-        background: #fff7ed;
+        background: #f0fdfa;
+        border-color: #5eead4;
     }
 
     .calendar-day-cell.other-month,
     .calendar-day-cell.past,
     .calendar-day-cell.unavailable {
+        background: #f8fafc;
         color: #9ca3af;
         cursor: not-allowed;
     }
 
     .calendar-day-cell.selected .day-number,
     .calendar-day-cell.selected > span:first-child {
-        background: #ff3b35;
+        background: #0f766e;
         color: #fff;
     }
 
     .calendar-day-cell.selected {
-        color: #ff3b35;
+        background: #ecfdf5;
+        border-color: #0f766e;
+        box-shadow: 0 10px 24px rgba(15, 118, 110, .18);
+        color: #0f766e;
     }
 
     .calendar-day-cell.available::after,
@@ -348,39 +360,39 @@
         border-radius: 999px;
         content: "";
         display: block;
-        height: .55rem;
+        height: .38rem;
         order: 2;
     }
 
     .calendar-day-cell.available::after {
-        background: #e9a4f0;
-        box-shadow: 0 0 0 3px rgba(233, 164, 240, .18);
-        width: .55rem;
+        background: #14b8a6;
+        box-shadow: 0 0 0 3px rgba(20, 184, 166, .14);
+        width: .38rem;
     }
 
     .calendar-day-cell.requested::after {
-        background: #fdc46f;
-        width: 1.35rem;
+        background: #f97316;
+        width: .9rem;
     }
 
     .calendar-markers {
         align-items: center;
         display: flex;
         gap: .14rem;
-        min-height: .7rem;
+        min-height: .45rem;
     }
 
     .calendar-marker {
-        background: #e9a4f0;
+        background: #14b8a6;
         border-radius: 999px;
         display: inline-block;
-        height: .55rem;
-        width: .55rem;
+        height: .38rem;
+        width: .38rem;
     }
 
     .calendar-marker.request {
-        background: #fdc46f;
-        width: 1.35rem;
+        background: #f97316;
+        width: .9rem;
     }
 
     .calendar-day-cell.available .calendar-marker.available {
@@ -390,7 +402,7 @@
     .calendar-day-cell small {
         color: #64748b;
         display: block;
-        font-size: .62rem;
+        font-size: .5rem;
         font-weight: 900;
         line-height: 1;
         order: 3;
@@ -398,35 +410,36 @@
 
     .date-legend {
         display: flex;
-        gap: 12px;
-        padding: 8px;
-        background: #f9f9f9;
-        border-radius: 6px;
-        margin-top: 8px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        gap: .55rem;
+        margin-top: .6rem;
+        padding: .5rem;
     }
 
     .legend-item {
         display: flex;
         align-items: center;
         gap: 6px;
-        font-size: 0.8rem;
+        font-size: .68rem;
         margin: 0;
     }
 
     .legend-color {
-        width: 18px;
-        height: 10px;
+        width: 14px;
+        height: 8px;
         border-radius: 999px;
         border: 0;
         flex-shrink: 0;
     }
 
     .legend-color.available {
-        background: #e9a4f0;
+        background: #14b8a6;
     }
 
     .legend-color.requested {
-        background: #fdc46f;
+        background: #f97316;
     }
 
     .appointment-note {
@@ -468,7 +481,9 @@
 
     @media (max-width: 575.98px) {
         .appointment-hero-actions .btn { width: 100%; }
-        .calendar-day-cell { min-height: 3.9rem; }
+        .calendar-selector { padding: .5rem; }
+        .calendar-grid-user { gap: .25rem; }
+        .calendar-day-cell { border-radius: 9px; min-height: 2.85rem; }
         .calendar-day-cell small { display: none; }
         .date-legend { flex-direction: column; gap: 6px; }
     }
@@ -535,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const appointmentType = isAvailable ? 'available_day' : (canRequestDate ? 'request_day' : '');
 
             calendarDays += `<div class="${classes}" data-date="${dateStr}" data-type="${appointmentType}" data-slot-id="${firstSlot ? firstSlot.id : ''}" data-remaining="${remainingPlaces}" data-day="${dayNumber}">
-                <span>${dayNumber}</span>
+                <span class="day-number">${dayNumber}</span>
                 ${isAvailable ? `<small>${remainingPlaces} place${remainingPlaces > 1 ? 's' : ''}</small>` : ''}
             </div>`;
             
