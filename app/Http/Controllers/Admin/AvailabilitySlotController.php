@@ -36,6 +36,7 @@ class AvailabilitySlotController extends Controller
             ->toArray();
 
         $availabilityMap = $this->buildAvailabilityMap($monthSlots);
+        $yearMonths = $this->buildYearMonths($year, $month);
         $slots = AvailabilitySlot::orderBy('start_time', 'desc')->paginate(20);
 
         return view('admin.availability-slots.index', [
@@ -44,6 +45,7 @@ class AvailabilitySlotController extends Controller
             'availableDays' => $availableDays,
             'pendingRequests' => $pendingRequests,
             'availabilityMap' => $availabilityMap,
+            'yearMonths' => $yearMonths,
             'month' => $month,
             'year' => $year,
         ]);
@@ -222,6 +224,53 @@ class AvailabilitySlotController extends Controller
                 'remaining' => $slots->sum(fn ($slot) => max($slot->max_appointments - $slot->current_appointments, 0)),
                 'full' => $slots->every(fn ($slot) => $slot->current_appointments >= $slot->max_appointments),
             ])
+            ->toArray();
+    }
+
+    private function buildYearMonths(int $year, int $selectedMonth): array
+    {
+        $yearSlots = AvailabilitySlot::where('slot_type', 'available')
+            ->whereYear('available_date', $year)
+            ->get();
+
+        $availabilitySummary = $yearSlots
+            ->groupBy(fn ($slot) => $slot->available_date->month)
+            ->map(fn ($slots) => [
+                'days' => $slots
+                    ->pluck('available_date')
+                    ->map(fn ($date) => $date->toDateString())
+                    ->unique()
+                    ->count(),
+                'capacity' => $slots->sum('max_appointments'),
+                'remaining' => $slots->sum(fn ($slot) => max($slot->max_appointments - $slot->current_appointments, 0)),
+            ]);
+
+        $pendingSummary = Appointment::pendingApproval()
+            ->whereYear('appointment_date', $year)
+            ->get()
+            ->groupBy(fn ($appointment) => $appointment->appointment_date->month)
+            ->map->count();
+
+        return collect(range(1, 12))
+            ->map(function (int $monthNumber) use ($year, $selectedMonth, $availabilitySummary, $pendingSummary) {
+                $date = Carbon::createFromDate($year, $monthNumber, 1);
+                $summary = $availabilitySummary->get($monthNumber, [
+                    'days' => 0,
+                    'capacity' => 0,
+                    'remaining' => 0,
+                ]);
+
+                return [
+                    'number' => $monthNumber,
+                    'date' => $date,
+                    'available_days' => $summary['days'],
+                    'capacity' => $summary['capacity'],
+                    'remaining' => $summary['remaining'],
+                    'pending' => $pendingSummary->get($monthNumber, 0),
+                    'is_selected' => $monthNumber === (int) $selectedMonth,
+                    'is_current' => now()->year === $year && now()->month === $monthNumber,
+                ];
+            })
             ->toArray();
     }
 }

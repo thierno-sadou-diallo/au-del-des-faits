@@ -15,80 +15,131 @@
             <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{{ session('status') }}</div>
         @endif
 
-        <section class="mx-auto max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div class="flex flex-col gap-4 border-b border-slate-100 bg-slate-50/70 p-4">
-                <div>
-                    <p class="text-xs font-black uppercase tracking-[0.18em] text-teal-700">Calendrier</p>
-                    <h2 class="mt-1 text-xl font-black text-slate-950">{{ ucfirst($currentDate->locale('fr')->monthName) }} {{ $currentDate->year }}</h2>
-                    <p class="mt-1 text-sm text-slate-500">Pilotez les jours ouverts aux rendez-vous et les demandes a traiter.</p>
+        <section class="grid gap-6 lg:grid-cols-[minmax(340px,520px)_1fr]">
+            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex flex-col gap-4 border-b border-slate-100 bg-slate-50/70 p-4">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-teal-700">Calendrier</p>
+                        <h2 class="mt-1 text-xl font-black text-slate-950">{{ ucfirst($currentDate->locale('fr')->monthName) }} {{ $currentDate->year }}</h2>
+                        <p class="mt-1 text-sm text-slate-500">Activez ou retirez les jours ouverts aux rendez-vous.</p>
+                    </div>
+                    <div class="grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-2 rounded-xl border border-slate-200 bg-white p-1">
+                        <a href="{{ route('admin.availability-slots.index', ['year' => $currentDate->copy()->subMonth()->year, 'month' => $currentDate->copy()->subMonth()->month]) }}" class="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-teal-300 hover:text-teal-700" aria-label="Mois precedent">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        <a href="{{ route('admin.availability-slots.index', ['year' => now()->year, 'month' => now()->month]) }}" class="text-center text-xs font-black uppercase tracking-wide text-slate-500 transition hover:text-teal-700">Aujourd'hui</a>
+                        <a href="{{ route('admin.availability-slots.index', ['year' => $currentDate->copy()->addMonth()->year, 'month' => $currentDate->copy()->addMonth()->month]) }}" class="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-teal-300 hover:text-teal-700" aria-label="Mois suivant">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="grid grid-cols-[2rem_1fr_2rem] items-center gap-2 rounded-xl border border-slate-200 bg-white p-1">
-                    <a href="{{ route('admin.availability-slots.index', ['year' => $currentDate->copy()->subMonth()->year, 'month' => $currentDate->copy()->subMonth()->month]) }}" class="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-teal-300 hover:text-teal-700" aria-label="Mois precedent">
-                        <i class="fas fa-chevron-left"></i>
-                    </a>
-                    <a href="{{ route('admin.availability-slots.index', ['year' => now()->year, 'month' => now()->month]) }}" class="text-center text-xs font-black uppercase tracking-wide text-slate-500 transition hover:text-teal-700">Aujourd'hui</a>
-                    <a href="{{ route('admin.availability-slots.index', ['year' => $currentDate->copy()->addMonth()->year, 'month' => $currentDate->copy()->addMonth()->month]) }}" class="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-teal-300 hover:text-teal-700" aria-label="Mois suivant">
-                        <i class="fas fa-chevron-right"></i>
-                    </a>
+
+                <div class="admin-month-calendar">
+                    <div class="admin-weekdays">
+                        <span>Lun</span>
+                        <span>Mar</span>
+                        <span>Mer</span>
+                        <span>Jeu</span>
+                        <span>Ven</span>
+                        <span>Sam</span>
+                        <span>Dim</span>
+                    </div>
+
+                    <div class="admin-month-grid">
+                        @php
+                            $firstDay = $currentDate->copy()->startOfMonth();
+                            $previousDays = $firstDay->dayOfWeek === 0 ? 6 : $firstDay->dayOfWeek - 1;
+                            $startDate = $firstDay->copy()->subDays($previousDays);
+                        @endphp
+
+                        @for ($i = 0; $i < 42; $i++)
+                            @php
+                                $date = $startDate->copy()->addDays($i);
+                                $dateKey = $date->format('Y-m-d');
+                                $isCurrentMonth = $date->month === $currentDate->month;
+                                $isPast = $date->lt(now()->startOfDay());
+                                $isAvailable = $isCurrentMonth && in_array($date->day, $availableDays);
+                                $hasPending = in_array($dateKey, $pendingRequests);
+                                $dayMeta = $availabilityMap[$dateKey] ?? null;
+                            @endphp
+
+                            <form action="{{ route('admin.availability-slots.toggle-day') }}" method="POST" class="admin-day {{ ! $isCurrentMonth ? 'is-muted' : '' }} {{ $isPast ? 'is-past' : '' }} {{ $isAvailable ? 'is-available' : '' }} {{ $hasPending ? 'has-pending' : '' }}">
+                                @csrf
+                                <input type="hidden" name="date" value="{{ $dateKey }}">
+                                <button type="submit" @disabled(! $isCurrentMonth || $isPast) title="{{ $isAvailable ? 'Retirer la disponibilite' : 'Rendre disponible' }}">
+                                    <span class="admin-day-number">{{ $date->day }}</span>
+                                    <span class="admin-day-markers">
+                                        @if ($isAvailable)
+                                            <span class="marker availability {{ ($dayMeta['full'] ?? false) ? 'is-full' : '' }}"></span>
+                                        @endif
+                                        @if ($hasPending)
+                                            <span class="marker pending"></span>
+                                        @endif
+                                    </span>
+                                    @if ($dayMeta)
+                                        <span class="admin-day-caption">{{ $dayMeta['remaining'] }}/{{ $dayMeta['capacity'] }} dispo.</span>
+                                    @elseif ($hasPending)
+                                        <span class="admin-day-caption">demande</span>
+                                    @endif
+                                </button>
+                            </form>
+                        @endfor
+                    </div>
+
+                    <div class="admin-calendar-legend">
+                        <span><i class="marker availability"></i> Jour disponible</span>
+                        <span><i class="marker pending"></i> Demande a valider</span>
+                        <span><i class="marker availability is-full"></i> Complet</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="admin-month-calendar">
-                <div class="admin-weekdays">
-                    <span>Lun</span>
-                    <span>Mar</span>
-                    <span>Mer</span>
-                    <span>Jeu</span>
-                    <span>Ven</span>
-                    <span>Sam</span>
-                    <span>Dim</span>
+            <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex flex-col gap-4 border-b border-slate-100 bg-slate-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-[0.18em] text-teal-700">Vue annuelle</p>
+                        <h2 class="mt-1 text-xl font-black text-slate-950">{{ $year }}</h2>
+                        <p class="mt-1 text-sm text-slate-500">Acces direct aux mois et lecture rapide des disponibilites.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('admin.availability-slots.index', ['year' => $year - 1, 'month' => $month]) }}" class="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-teal-300 hover:text-teal-700" aria-label="Annee precedente">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        <a href="{{ route('admin.availability-slots.index', ['year' => now()->year, 'month' => now()->month]) }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-wide text-slate-500 transition hover:border-teal-300 hover:text-teal-700">Cette annee</a>
+                        <a href="{{ route('admin.availability-slots.index', ['year' => $year + 1, 'month' => $month]) }}" class="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-teal-300 hover:text-teal-700" aria-label="Annee suivante">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
                 </div>
 
-                <div class="admin-month-grid">
-                    @php
-                        $firstDay = $currentDate->copy()->startOfMonth();
-                        $previousDays = $firstDay->dayOfWeek === 0 ? 6 : $firstDay->dayOfWeek - 1;
-                        $startDate = $firstDay->copy()->subDays($previousDays);
-                    @endphp
-
-                    @for ($i = 0; $i < 42; $i++)
+                <div class="admin-year-overview">
+                    @foreach ($yearMonths as $yearMonth)
                         @php
-                            $date = $startDate->copy()->addDays($i);
-                            $dateKey = $date->format('Y-m-d');
-                            $isCurrentMonth = $date->month === $currentDate->month;
-                            $isPast = $date->lt(now()->startOfDay());
-                            $isAvailable = $isCurrentMonth && in_array($date->day, $availableDays);
-                            $hasPending = in_array($dateKey, $pendingRequests);
-                            $dayMeta = $availabilityMap[$dateKey] ?? null;
+                            $availabilityPercent = $yearMonth['capacity'] > 0
+                                ? min(100, round(($yearMonth['remaining'] / $yearMonth['capacity']) * 100))
+                                : 0;
                         @endphp
-
-                        <form action="{{ route('admin.availability-slots.toggle-day') }}" method="POST" class="admin-day {{ ! $isCurrentMonth ? 'is-muted' : '' }} {{ $isPast ? 'is-past' : '' }} {{ $isAvailable ? 'is-available' : '' }} {{ $hasPending ? 'has-pending' : '' }}">
-                            @csrf
-                            <input type="hidden" name="date" value="{{ $dateKey }}">
-                            <button type="submit" @disabled(! $isCurrentMonth || $isPast) title="{{ $isAvailable ? 'Retirer la disponibilite' : 'Rendre disponible' }}">
-                                <span class="admin-day-number">{{ $date->day }}</span>
-                                <span class="admin-day-markers">
-                                    @if ($isAvailable)
-                                        <span class="marker availability {{ ($dayMeta['full'] ?? false) ? 'is-full' : '' }}"></span>
-                                    @endif
-                                    @if ($hasPending)
-                                        <span class="marker pending"></span>
-                                    @endif
+                        <a href="{{ route('admin.availability-slots.index', ['year' => $year, 'month' => $yearMonth['number']]) }}" class="admin-year-month {{ $yearMonth['is_selected'] ? 'is-selected' : '' }} {{ $yearMonth['is_current'] ? 'is-current' : '' }}">
+                            <span class="flex items-start justify-between gap-3">
+                                <span>
+                                    <span class="block text-sm font-black text-slate-950">{{ ucfirst($yearMonth['date']->locale('fr')->translatedFormat('M')) }}</span>
+                                    <span class="mt-1 block text-xs font-bold text-slate-500">{{ $yearMonth['available_days'] }} jour(s) ouvert(s)</span>
                                 </span>
-                                @if ($dayMeta)
-                                    <span class="admin-day-caption">{{ $dayMeta['remaining'] }}/{{ $dayMeta['capacity'] }} dispo.</span>
-                                @elseif ($hasPending)
-                                    <span class="admin-day-caption">demande</span>
+                                @if ($yearMonth['pending'] > 0)
+                                    <span class="rounded-full bg-orange-50 px-2 py-1 text-[0.65rem] font-black text-orange-700">{{ $yearMonth['pending'] }}</span>
                                 @endif
-                            </button>
-                        </form>
-                    @endfor
-                </div>
-
-                <div class="admin-calendar-legend">
-                    <span><i class="marker availability"></i> Jour disponible</span>
-                    <span><i class="marker pending"></i> Demande a valider</span>
-                    <span><i class="marker availability is-full"></i> Complet</span>
+                            </span>
+                            <span class="mt-4 block h-1.5 overflow-hidden rounded-full bg-slate-100">
+                                <span class="block h-full rounded-full {{ $yearMonth['remaining'] > 0 ? 'bg-teal-500' : 'bg-slate-300' }}" style="width: {{ $yearMonth['capacity'] > 0 ? max(12, $availabilityPercent) : 0 }}%"></span>
+                            </span>
+                            <span class="mt-2 flex justify-between text-[0.68rem] font-black uppercase tracking-wide text-slate-500">
+                                <span>{{ $yearMonth['remaining'] }}/{{ $yearMonth['capacity'] }} places</span>
+                                @if ($yearMonth['is_current'])
+                                    <span>Aujourd'hui</span>
+                                @endif
+                            </span>
+                        </a>
+                    @endforeach
                 </div>
             </div>
         </section>
@@ -245,6 +296,34 @@
             gap: .45rem;
             padding: .35rem .55rem;
         }
+        .admin-year-overview {
+            display: grid;
+            gap: .75rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            padding: 1rem;
+        }
+        .admin-year-month {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            display: block;
+            min-height: 6.9rem;
+            padding: .9rem;
+            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+        .admin-year-month:hover {
+            border-color: #5eead4;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, .08);
+            transform: translateY(-1px);
+        }
+        .admin-year-month.is-selected {
+            background: #f0fdfa;
+            border-color: #14b8a6;
+            box-shadow: inset 0 0 0 1px rgba(20, 184, 166, .18);
+        }
+        .admin-year-month.is-current:not(.is-selected) {
+            border-color: #fed7aa;
+        }
 
         @media (max-width: 640px) {
             .admin-day button {
@@ -253,6 +332,12 @@
 
             .admin-day-caption {
                 display: none;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            .admin-year-overview {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
     </style>
