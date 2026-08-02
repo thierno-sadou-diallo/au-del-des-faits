@@ -15,18 +15,18 @@
             <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{{ session('status') }}</div>
         @endif
 
-        <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div class="flex flex-col gap-4 border-b border-slate-100 bg-slate-50/70 p-5 lg:flex-row lg:items-center lg:justify-between">
+        <section class="mx-auto max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex flex-col gap-4 border-b border-slate-100 bg-slate-50/70 p-4">
                 <div>
                     <p class="text-xs font-black uppercase tracking-[0.18em] text-teal-700">Calendrier</p>
-                    <h2 class="mt-1 text-2xl font-black text-slate-950">{{ ucfirst($currentDate->locale('fr')->monthName) }} {{ $currentDate->year }}</h2>
+                    <h2 class="mt-1 text-xl font-black text-slate-950">{{ ucfirst($currentDate->locale('fr')->monthName) }} {{ $currentDate->year }}</h2>
                     <p class="mt-1 text-sm text-slate-500">Pilotez les jours ouverts aux rendez-vous et les demandes a traiter.</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="grid grid-cols-[2rem_1fr_2rem] items-center gap-2 rounded-xl border border-slate-200 bg-white p-1">
                     <a href="{{ route('admin.availability-slots.index', ['year' => $currentDate->copy()->subMonth()->year, 'month' => $currentDate->copy()->subMonth()->month]) }}" class="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-teal-300 hover:text-teal-700" aria-label="Mois precedent">
                         <i class="fas fa-chevron-left"></i>
                     </a>
-                    <a href="{{ route('admin.availability-slots.index', ['year' => now()->year, 'month' => now()->month]) }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-600 transition hover:border-teal-300 hover:text-teal-700">Aujourd'hui</a>
+                    <a href="{{ route('admin.availability-slots.index', ['year' => now()->year, 'month' => now()->month]) }}" class="text-center text-xs font-black uppercase tracking-wide text-slate-500 transition hover:text-teal-700">Aujourd'hui</a>
                     <a href="{{ route('admin.availability-slots.index', ['year' => $currentDate->copy()->addMonth()->year, 'month' => $currentDate->copy()->addMonth()->month]) }}" class="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-teal-300 hover:text-teal-700" aria-label="Mois suivant">
                         <i class="fas fa-chevron-right"></i>
                     </a>
@@ -169,38 +169,37 @@
     </div>
 
     <style>
-        .admin-month-calendar { padding: clamp(.75rem, 1.8vw, 1.25rem); }
+        .admin-month-calendar { padding: .65rem; }
         .admin-weekdays,
         .admin-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
         .admin-weekdays span {
             color: #64748b;
-            font-size: .62rem;
+            font-size: .58rem;
             font-weight: 900;
-            padding: .1rem .3rem .5rem;
+            padding: .15rem 0 .35rem;
             text-align: center;
             text-transform: uppercase;
         }
         .admin-month-grid {
-            background: #e2e8f0;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            gap: 1px;
-            overflow: hidden;
+            background: transparent;
+            border: 0;
+            gap: .25rem;
         }
         .admin-day { min-width: 0; }
         .admin-day button {
             align-items: flex-start;
             background: #fff;
-            border: 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
             color: #020617;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             gap: .55rem;
-            justify-content: space-between;
-            min-height: clamp(4.35rem, 6.8vw, 5.8rem);
-            padding: .5rem;
-            text-align: left;
+            justify-content: center;
+            min-height: clamp(3rem, 6.5vw, 3.85rem);
+            padding: .28rem .12rem;
+            text-align: center;
             transition: background .18s ease, box-shadow .18s ease;
             width: 100%;
         }
@@ -213,13 +212,13 @@
             align-items: center;
             border-radius: 10px;
             display: inline-flex;
-            font-size: clamp(.9rem, 1.7vw, 1.15rem);
+            font-size: clamp(.82rem, 2.55vw, 1.05rem);
             font-weight: 900;
-            height: 1.75rem;
+            height: 1.55rem;
             justify-content: center;
             letter-spacing: 0;
             line-height: 1;
-            min-width: 1.75rem;
+            min-width: 1.55rem;
         }
         .admin-day.is-muted button,
         .admin-day.is-past button { background: #f8fafc; color: #94a3b8; }
@@ -227,13 +226,13 @@
         .admin-day.is-past .admin-day-number { color: #9ca3af; }
         .admin-day.is-available .admin-day-number { background: #ccfbf1; color: #0f766e; }
         .admin-day.has-pending .admin-day-number { background: #fff7ed; color: #c2410c; }
-        .admin-day-markers { align-items: center; display: flex; gap: .3rem; min-height: .5rem; }
-        .marker { border-radius: 999px; display: inline-block; height: .42rem; width: .42rem; }
+        .admin-day-markers { align-items: center; display: flex; gap: .25rem; justify-content: center; min-height: .45rem; }
+        .marker { border-radius: 999px; display: inline-block; height: .38rem; width: .38rem; }
         .marker.availability { background: #14b8a6; }
-        .marker.pending { background: #f97316; width: 1rem; }
+        .marker.pending { background: #f97316; width: .9rem; }
         .marker.is-full { background: #64748b; }
-        .admin-day-caption { color: #64748b; font-size: .6rem; font-weight: 900; line-height: 1; }
-        .admin-calendar-legend { display: flex; flex-wrap: wrap; gap: .8rem; padding-top: 1rem; }
+        .admin-day-caption { color: #64748b; font-size: .5rem; font-weight: 900; line-height: 1; }
+        .admin-calendar-legend { display: flex; flex-wrap: wrap; gap: .55rem; padding-top: .7rem; }
         .admin-calendar-legend span {
             align-items: center;
             background: #f8fafc;
