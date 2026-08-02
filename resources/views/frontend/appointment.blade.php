@@ -494,9 +494,11 @@
 document.addEventListener('DOMContentLoaded', function() {
     let currentMonth = {{ $month }};
     let currentYear = {{ $year }};
-    const availableDates = new Set(@json($availableDates));
-    const availableSlotMap = @json($availableSlotMap);
-    const hasAdminAvailableDates = @json($hasAdminAvailableDates);
+    let availableDates = new Set(@json($availableDates));
+    let availableSlotMap = @json($availableSlotMap);
+    let hasAdminAvailableDates = @json($hasAdminAvailableDates);
+    let availabilityRequestId = 0;
+    const slotsEndpoint = @json(route('appointment.slots'));
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -506,6 +508,37 @@ document.addEventListener('DOMContentLoaded', function() {
             String(date.getDate()).padStart(2, '0');
     }
     
+    async function loadAvailabilityForCurrentMonth() {
+        const requestId = ++availabilityRequestId;
+        const url = new URL(slotsEndpoint);
+        url.searchParams.set('month', currentMonth);
+        url.searchParams.set('year', currentYear);
+
+        try {
+            const response = await fetch(url.toString(), {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Impossible de charger les disponibilites.');
+            }
+
+            const data = await response.json();
+
+            if (requestId !== availabilityRequestId) {
+                return;
+            }
+
+            availableDates = new Set(data.available_dates || []);
+            availableSlotMap = data.available_slot_map || {};
+            hasAdminAvailableDates = Boolean(data.has_admin_available_dates);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     function generateCalendar() {
         const firstDay = new Date(currentYear, currentMonth - 1, 1);
         const lastDay = new Date(currentYear, currentMonth, 0);
@@ -609,22 +642,27 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('appointment-submit').disabled = false;
     }
 
-    document.getElementById('prev-month').addEventListener('click', () => {
-        currentMonth--;
+    async function changeMonth(delta) {
+        currentMonth += delta;
         if (currentMonth < 1) {
             currentMonth = 12;
             currentYear--;
         }
-        generateCalendar();
-    });
-
-    document.getElementById('next-month').addEventListener('click', () => {
-        currentMonth++;
         if (currentMonth > 12) {
             currentMonth = 1;
             currentYear++;
         }
+
+        await loadAvailabilityForCurrentMonth();
         generateCalendar();
+    }
+
+    document.getElementById('prev-month').addEventListener('click', () => {
+        changeMonth(-1);
+    });
+
+    document.getElementById('next-month').addEventListener('click', () => {
+        changeMonth(1);
     });
 
     generateCalendar();

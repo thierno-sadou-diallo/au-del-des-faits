@@ -37,17 +37,7 @@ class AppointmentController extends Controller
             ->values()
             ->toArray();
 
-        $availableSlotMap = $bookableSlots
-            ->groupBy(fn ($slot) => Carbon::parse($slot->available_date)->toDateString())
-            ->map(fn ($slots) => $slots->map(fn ($slot) => [
-                'id' => $slot->id,
-                'remaining' => max($slot->max_appointments - $slot->current_appointments, 0),
-                'capacity' => $slot->max_appointments,
-                'label' => $slot->start_time->isSameDay($slot->end_time)
-                    ? $slot->start_time->format('H:i').' - '.$slot->end_time->format('H:i')
-                    : 'Journee',
-            ])->values())
-            ->toArray();
+        $availableSlotMap = $this->buildAvailableSlotMap($bookableSlots);
 
         $hasBookableSlots = $bookableSlots->isNotEmpty();
 
@@ -73,10 +63,14 @@ class AppointmentController extends Controller
             'year' => 'required|integer|min:'.now()->year.'|max:'.now()->addYears(3)->year,
         ]);
 
-        $availableDates = $this->bookableSlotsQuery()
+        $monthSlots = $this->bookableSlotsQuery()
             ->whereYear('available_date', $validated['year'])
             ->whereMonth('available_date', $validated['month'])
             ->orderBy('available_date')
+            ->orderBy('start_time')
+            ->get();
+
+        $availableDates = $monthSlots
             ->pluck('available_date')
             ->map(fn ($date) => Carbon::parse($date)->toDateString())
             ->unique()
@@ -84,6 +78,7 @@ class AppointmentController extends Controller
 
         return response()->json([
             'available_dates' => $availableDates,
+            'available_slot_map' => $this->buildAvailableSlotMap($monthSlots),
             'has_admin_available_dates' => $this->bookableSlotsQuery()->exists(),
         ]);
     }
@@ -239,6 +234,21 @@ class AppointmentController extends Controller
             ->where('is_available', true)
             ->whereDate('available_date', '>=', now()->toDateString())
             ->whereColumn('current_appointments', '<', 'max_appointments');
+    }
+
+    private function buildAvailableSlotMap($slots): array
+    {
+        return $slots
+            ->groupBy(fn ($slot) => Carbon::parse($slot->available_date)->toDateString())
+            ->map(fn ($slots) => $slots->map(fn ($slot) => [
+                'id' => $slot->id,
+                'remaining' => max($slot->max_appointments - $slot->current_appointments, 0),
+                'capacity' => $slot->max_appointments,
+                'label' => $slot->start_time->isSameDay($slot->end_time)
+                    ? $slot->start_time->format('H:i').' - '.$slot->end_time->format('H:i')
+                    : 'Journee',
+            ])->values())
+            ->toArray();
     }
 
     private function createAppointment(array $validated, AvailabilitySlot $slot, bool $isApproved): Appointment

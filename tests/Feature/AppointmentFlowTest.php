@@ -92,6 +92,30 @@ class AppointmentFlowTest extends TestCase
         $response->assertSee('"remaining":2', false);
     }
 
+    public function test_admin_created_slot_is_exposed_to_visitor_slots_api(): void
+    {
+        $date = now()->addMonth()->startOfMonth()->addDays(4);
+
+        $slot = AvailabilitySlot::create([
+            'available_date' => $date->toDateString(),
+            'slot_type' => 'available',
+            'start_time' => $date->copy()->setTime(9, 0),
+            'end_time' => $date->copy()->setTime(10, 0),
+            'is_available' => true,
+            'max_appointments' => 4,
+            'current_appointments' => 1,
+        ]);
+
+        $this->getJson(route('appointment.slots', [
+            'month' => $date->month,
+            'year' => $date->year,
+        ]))->assertOk()
+            ->assertJsonPath('available_dates.0', $date->toDateString())
+            ->assertJsonPath("available_slot_map.{$date->toDateString()}.0.id", $slot->id)
+            ->assertJsonPath("available_slot_map.{$date->toDateString()}.0.remaining", 3)
+            ->assertJsonPath('has_admin_available_dates', true);
+    }
+
     public function test_admin_slot_form_sets_available_date_for_calendar(): void
     {
         $admin = User::factory()->create([
