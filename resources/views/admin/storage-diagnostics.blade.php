@@ -35,6 +35,10 @@
         <div class="card-body">
             <table class="table table-sm mb-0">
                 <tr>
+                    <td><strong>Disque media actif:</strong></td>
+                    <td><code>{{ $media_disk }}</code> <small class="text-muted">({{ $media_disk_driver }})</small></td>
+                </tr>
+                <tr>
                     <td><strong>Dossier de stockage:</strong></td>
                     <td><code>{{ $storage_path }}</code></td>
                 </tr>

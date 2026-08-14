@@ -87,9 +87,13 @@
             <label class="mb-3 block text-sm font-semibold text-slate-700" for="image">Image principale</label>
             @if(!empty($post?->image_url))
                 <img class="mb-4 aspect-video w-full rounded-lg object-cover" src="{{ $post->image_url }}" alt="{{ $post->title }}">
+                <label class="mb-4 flex items-start gap-3 rounded-lg border border-rose-100 bg-rose-50 p-3 text-sm text-rose-800">
+                    <input class="mt-1 rounded border-rose-300 text-rose-600 focus:ring-rose-500" type="checkbox" name="remove_image" value="1">
+                    <span>Retirer l'image actuelle de cet article</span>
+                </label>
             @endif
             <input id="image" class="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-teal-700" type="file" name="image" accept="image/*">
-            <p class="mt-3 text-xs text-slate-500">Format image, 2 Mo maximum.</p>
+            <p class="mt-3 text-xs text-slate-500">Format image, 2 Mo maximum. Sans nouvelle image et sans retrait coche, l'image actuelle reste conservee.</p>
         </div>
     </aside>
 </div>

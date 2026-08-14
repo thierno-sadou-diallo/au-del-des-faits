@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Post extends Model
@@ -118,8 +119,13 @@ class Post extends Model
             $path = Str::after($path, 'public/');
         }
 
-        // Utiliser une route applicative dediee evite les problemes de symlink
-        // et les conflits avec la route interne /storage de Laravel en production.
-        return route('media.storage', ['path' => $path]);
+        $disk = config('filesystems.media_disk', 'public');
+
+        if (config("filesystems.disks.{$disk}.driver") === 'local') {
+            // En local, cette route evite les problemes de symlink public/storage.
+            return route('media.storage', ['path' => $path]);
+        }
+
+        return Storage::disk($disk)->url($path);
     }
 }

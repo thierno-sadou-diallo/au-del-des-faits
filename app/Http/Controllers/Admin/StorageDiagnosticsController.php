@@ -16,6 +16,8 @@ class StorageDiagnosticsController
     private function checkStorageHealth(): array
     {
         $data = [
+            'media_disk' => config('filesystems.media_disk', 'public'),
+            'media_disk_driver' => config('filesystems.disks.'.config('filesystems.media_disk', 'public').'.driver'),
             'storage_path' => storage_path('app/public'),
             'public_path' => public_path(),
             'symlink_path' => public_path('storage'),
@@ -24,6 +26,7 @@ class StorageDiagnosticsController
             'sample_files' => [],
             'all_ok' => true,
         ];
+        $usesLocalMediaDisk = $data['media_disk_driver'] === 'local';
 
         // Vérifier le symlink
         $data['disk_checks']['symlink_exists'] = is_link($data['symlink_path']);
@@ -55,7 +58,7 @@ class StorageDiagnosticsController
                 'path' => $path,
             ];
 
-            if (!$exists || !$writable) {
+            if ($usesLocalMediaDisk && (!$exists || !$writable)) {
                 $data['all_ok'] = false;
             }
         }
@@ -73,8 +76,8 @@ class StorageDiagnosticsController
 
         // Vérifier l'accès via Storage disk
         try {
-            $data['disk_checks']['storage_disk_works'] = Storage::disk('public')->exists('.gitignore') || 
-                                                         count(Storage::disk('public')->listContents('posts')) >= 0;
+            $disk = Storage::disk($data['media_disk']);
+            $data['disk_checks']['storage_disk_works'] = count($disk->listContents('posts')) >= 0;
         } catch (\Exception $e) {
             $data['disk_checks']['storage_disk_works'] = false;
             $data['disk_checks']['storage_disk_error'] = $e->getMessage();

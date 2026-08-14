@@ -64,7 +64,7 @@ class PortfolioController extends Controller
         $data['slug'] = Str::slug($data['title']).'-'.Str::random(6);
         if (! empty($data['images'])) {
             foreach ($portfolio->images ?? [] as $oldImage) {
-                Storage::disk('public')->delete($oldImage);
+                Storage::disk($this->mediaDisk())->delete($oldImage);
             }
         } else {
             $data['images'] = $portfolio->images ?? [];
@@ -78,7 +78,7 @@ class PortfolioController extends Controller
     public function destroy(Portfolio $portfolio)
     {
         foreach ($portfolio->images ?? [] as $image) {
-            Storage::disk('public')->delete($image);
+            Storage::disk($this->mediaDisk())->delete($image);
         }
         $portfolio->delete();
         $this->clearPublicCaches($portfolio);
@@ -107,8 +107,11 @@ class PortfolioController extends Controller
             : [];
         $data['images'] = [];
         if ($request->hasFile('images')) {
+            $disk = $this->mediaDisk();
+            Storage::disk($disk)->makeDirectory('portfolio');
+
             foreach ($request->file('images') as $image) {
-                $data['images'][] = $image->store('portfolio', 'public');
+                $data['images'][] = $image->store('portfolio', $disk);
             }
         }
         return $data;
@@ -125,5 +128,10 @@ class PortfolioController extends Controller
         if ($portfolio) {
             Cache::forget("portfolio_similar_{$portfolio->id}");
         }
+    }
+
+    private function mediaDisk(): string
+    {
+        return config('filesystems.media_disk', 'public');
     }
 }

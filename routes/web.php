@@ -85,8 +85,10 @@ Route::get('/media-storage/{path}', function (string $path) {
     }
     
     // Fallback: utiliser Storage disk
-    if (Storage::disk('public')->exists($path)) {
-        return Storage::disk('public')->response($path);
+    $disk = config('filesystems.media_disk', 'public');
+
+    if (Storage::disk($disk)->exists($path)) {
+        return Storage::disk($disk)->response($path);
     }
     
     abort(404, 'Fichier non trouvé');
@@ -122,8 +124,10 @@ Route::get('/storage/{path}', function (string $path) {
     }
     
     // Fallback: utiliser Storage disk
-    if (Storage::disk('public')->exists($path)) {
-        return Storage::disk('public')->response($path);
+    $disk = config('filesystems.media_disk', 'public');
+
+    if (Storage::disk($disk)->exists($path)) {
+        return Storage::disk($disk)->response($path);
     }
     
     abort(404, 'Fichier non trouvé');

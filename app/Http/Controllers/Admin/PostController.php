@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PostController extends Controller
 {
@@ -38,7 +39,7 @@ class PostController extends Controller
         ]);
         $data['slug'] = Str::slug($data['title']).'-'.Str::random(6);
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('posts', 'public');
+            $data['image'] = $this->storePostImage($request);
         }
         Post::create($data);
         $this->clearPublicCaches();
@@ -62,12 +63,22 @@ class PostController extends Controller
             'status' => ['required', 'in:draft,published'],
             'category_id' => ['nullable', 'exists:categories,id'],
             'image' => ['nullable', 'image', 'max:2048'],
+            'remove_image' => ['nullable', 'boolean'],
         ]);
+
+        $removeImage = $request->boolean('remove_image');
+        unset($data['remove_image']);
+
         if ($request->hasFile('image')) {
             if ($post->image) {
-                Storage::disk('public')->delete($post->image);
+                Storage::disk($this->mediaDisk())->delete($post->image);
             }
-            $data['image'] = $request->file('image')->store('posts', 'public');
+            $data['image'] = $this->storePostImage($request);
+        } elseif ($removeImage) {
+            if ($post->image) {
+                Storage::disk($this->mediaDisk())->delete($post->image);
+            }
+            $data['image'] = null;
         }
         $data['slug'] = Str::slug($data['title']).'-'.Str::random(6);
         $post->update($data);
@@ -79,7 +90,7 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         if ($post->image) {
-            Storage::disk('public')->delete($post->image);
+            Storage::disk($this->mediaDisk())->delete($post->image);
         }
         $post->delete();
         $this->clearPublicCaches($post);
@@ -123,6 +134,28 @@ class PostController extends Controller
         if ($post) {
             Cache::forget("post_similar_{$post->id}");
         }
+    }
+
+    private function storePostImage(Request $request): string
+    {
+        $disk = $this->mediaDisk();
+
+        Storage::disk($disk)->makeDirectory('posts');
+
+        $path = $request->file('image')->store('posts', $disk);
+
+        if (! $path) {
+            throw ValidationException::withMessages([
+                'image' => "L'image n'a pas pu etre enregistree. Verifiez le stockage du serveur.",
+            ]);
+        }
+
+        return $path;
+    }
+
+    private function mediaDisk(): string
+    {
+        return config('filesystems.media_disk', 'public');
     }
 
     private function generateWithAi(array $data): ?string
