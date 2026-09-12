@@ -80,7 +80,31 @@ Route::get('/media-storage/{path}', function (string $path) {
     
     foreach ($possiblePaths as $fullPath) {
         if (file_exists($fullPath) && is_file($fullPath)) {
-            return response()->file($fullPath);
+            $mime = null;
+            if (function_exists('finfo_open')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime = finfo_file($finfo, $fullPath) ?: null;
+                finfo_close($finfo);
+            }
+            if (! $mime && function_exists('mime_content_type')) {
+                $mime = mime_content_type($fullPath) ?: null;
+            }
+            $mime = $mime ?: 'application/octet-stream';
+
+            // Fallback: deviner le type MIME à partir de l'extension si la detection systeme echoue
+            if ($mime === 'application/octet-stream') {
+                $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+                $map = [
+                    'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif',
+                    'webp' => 'image/webp', 'svg' => 'image/svg+xml', 'avif' => 'image/avif', 'bmp' => 'image/bmp',
+                    'tif' => 'image/tiff', 'tiff' => 'image/tiff', 'heic' => 'image/heic', 'ico' => 'image/x-icon',
+                ];
+                if (isset($map[$ext])) {
+                    $mime = $map[$ext];
+                }
+            }
+
+            return response()->file($fullPath, ['Content-Type' => $mime]);
         }
     }
     
@@ -119,7 +143,31 @@ Route::get('/storage/{path}', function (string $path) {
     
     foreach ($possiblePaths as $fullPath) {
         if (file_exists($fullPath) && is_file($fullPath)) {
-            return response()->file($fullPath);
+            $mime = null;
+            if (function_exists('finfo_open')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mime = finfo_file($finfo, $fullPath) ?: null;
+                finfo_close($finfo);
+            }
+            if (! $mime && function_exists('mime_content_type')) {
+                $mime = mime_content_type($fullPath) ?: null;
+            }
+            $mime = $mime ?: 'application/octet-stream';
+
+            // Fallback: deviner le type MIME a partir de l'extension si la detection systeme echoue
+            if ($mime === 'application/octet-stream') {
+                $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+                $map = [
+                    'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif',
+                    'webp' => 'image/webp', 'svg' => 'image/svg+xml', 'avif' => 'image/avif', 'bmp' => 'image/bmp',
+                    'tif' => 'image/tiff', 'tiff' => 'image/tiff', 'heic' => 'image/heic', 'ico' => 'image/x-icon',
+                ];
+                if (isset($map[$ext])) {
+                    $mime = $map[$ext];
+                }
+            }
+
+            return response()->file($fullPath, ['Content-Type' => $mime]);
         }
     }
     

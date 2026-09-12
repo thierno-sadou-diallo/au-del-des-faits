@@ -35,7 +35,7 @@ class PostController extends Controller
             'content' => ['required', 'string'],
             'status' => ['required', 'in:draft,published'],
             'category_id' => ['nullable', 'exists:categories,id'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'file', 'max:2048'],
         ]);
         $data['slug'] = Str::slug($data['title']).'-'.Str::random(6);
         if ($request->hasFile('image')) {
@@ -62,7 +62,7 @@ class PostController extends Controller
             'content' => ['required', 'string'],
             'status' => ['required', 'in:draft,published'],
             'category_id' => ['nullable', 'exists:categories,id'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'file', 'max:2048'],
             'remove_image' => ['nullable', 'boolean'],
         ]);
 

@@ -27,9 +27,9 @@ return [
     */
 
     'media_disk' => env('MEDIA_DISK') ?: (
-        env('FILESYSTEM_DISK', 'local') === 'local'
-            ? 'public'
-            : env('FILESYSTEM_DISK', 'public')
+        env('APP_ENV') === 'production'
+            ? 's3'
+            : (env('FILESYSTEM_DISK') ?: 'public')
     ),
 
     /*

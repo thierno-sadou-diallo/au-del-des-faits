@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Post extends Model
@@ -119,13 +118,8 @@ class Post extends Model
             $path = Str::after($path, 'public/');
         }
 
-        $disk = config('filesystems.media_disk', 'public');
-
-        if (config("filesystems.disks.{$disk}.driver") === 'local') {
-            // En local, cette route evite les problemes de symlink public/storage.
-            return route('media.storage', ['path' => $path]);
-        }
-
-        return Storage::disk($disk)->url($path);
+        // Centraliser la lecture evite les URLs de bucket mal configurees et
+        // permet aussi de servir un disque prive via la route applicative.
+        return route('media.storage', ['path' => $path]);
     }
 }

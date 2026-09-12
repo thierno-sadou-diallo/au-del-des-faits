@@ -24,9 +24,9 @@
                 <p class="lead text-secondary">{{ $post->excerpt }}</p>
 
                 @if($post->image_url)
-                    <img src="{{ $post->image_url }}" class="article-main-image img-fluid rounded-4 my-4" alt="{{ $post->title }}">
+                    <img src="{{ $post->image_url }}" loading="lazy" class="article-main-image img-fluid rounded-4 my-4" alt="{{ $post->title }}">
                 @else
-                    <img src="{{ asset('images/ADF.jpg') }}" class="article-main-image img-fluid rounded-4 my-4" alt="{{ $post->title }}">
+                    <img src="{{ asset('images/ADF.jpg') }}" loading="lazy" class="article-main-image img-fluid rounded-4 my-4" alt="{{ $post->title }}">
                 @endif
 
                 <div class="content article-content text-secondary">{!! $post->content_html !!}</div>
@@ -225,6 +225,22 @@
             window.prompt('Copiez ce lien', articleShareData.url);
         }
     }
+
+    // Activer le lazy-loading pour toutes les images incluses dans le contenu Markdown/HTML
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.article-content img').forEach(function(img) {
+            try {
+                if (!img.getAttribute('loading')) {
+                    img.setAttribute('loading', 'lazy');
+                }
+                img.style.maxWidth = img.style.maxWidth || '100%';
+                img.style.height = img.style.height || 'auto';
+                img.classList.add('img-fluid');
+            } catch (e) {
+                // silence
+            }
+        });
+    });
 </script>
 @endpush
 
